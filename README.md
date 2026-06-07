@@ -10,6 +10,7 @@
 - [x] init session middlewear
 - [x] setup view renderer
 - [x] add controller pattern
+- [ ] add a letsencrypt cert
 - [ ] map out pages
   - [ ] extraploate components
 - [ ] bcrypt user/passwd
