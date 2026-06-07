@@ -2,7 +2,7 @@
 → E : a micro forum 
 
 # TODO
-- [x] init compositor
+- [x] init composer
   - [x] set up phpstan
   - [x] set up php-cs-fix
 - [x] setup slim

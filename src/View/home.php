@@ -1,3 +1,7 @@
+<?php
+/** @var string $sessionId */
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
