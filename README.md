@@ -9,7 +9,7 @@
 - [x] get sessions working
 - [x] init session middlewear
 - [x] setup view renderer
-- [ ] add controller pattern
+- [x] add controller pattern
 - [ ] map out pages
   - [ ] extraploate components
 - [ ] bcrypt user/passwd

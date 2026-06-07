@@ -2,10 +2,9 @@
 
 declare(strict_types=1);
 
+use Everesh\ZeroX45\Controller\HomeController;
 use Everesh\ZeroX45\Middleware\SessionMiddleware;
 
-use Psr\Http\Message\ResponseInterface as Response;
-use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Factory\AppFactory;
 use Slim\Views\PhpRenderer;
 
@@ -25,10 +24,6 @@ $app->add(new SessionMiddleware());
  */
 $app->addErrorMiddleware(true, true, true);
 
-$app->get("/", function (Request $request, Response $response) use ($view) {
-    return $view->render($response, "home.php", [
-        "sessionId" => session_id(),
-    ]);
-});
+$app->get("/", [new HomeController($view), "index"]);
 
 $app->run();
