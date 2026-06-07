@@ -2,15 +2,20 @@
 
 declare(strict_types=1);
 
+use Everesh\ZeroX45\Middleware\SessionMiddleware;
+
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Factory\AppFactory;
+use Slim\Views\PhpRenderer;
 
 require __DIR__ . "/../vendor/autoload.php";
 
 $app = AppFactory::create();
 
-// $app->addRoutingMiddleware();
+$view = new PhpRenderer(__DIR__ . "/../src/View");
+
+$app->add(new SessionMiddleware());
 
 /**
  * @param bool                  $displayErrorDetails -> Should be set to false in production
@@ -20,10 +25,10 @@ $app = AppFactory::create();
  */
 $app->addErrorMiddleware(true, true, true);
 
-$app->get("/", function (Request $request, Response $response) {
-    $response->getBody()->write("Hello, 0x45!");
-
-    return $response;
+$app->get("/", function (Request $request, Response $response) use ($view) {
+    return $view->render($response, "home.php", [
+        "sessionId" => session_id(),
+    ]);
 });
 
 $app->run();

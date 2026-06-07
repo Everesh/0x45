@@ -6,10 +6,14 @@
   - [x] set up phpstan
   - [x] set up php-cs-fix
 - [x] setup slim
-- [ ] get sessions working
-- [ ] init session middlewear
+- [x] get sessions working
+- [x] init session middlewear
+- [x] setup view renderer
+- [ ] add controller pattern
 - [ ] map out pages
   - [ ] extraploate components
+- [ ] bcrypt user/passwd
+  - [ ] OAuth
 - [ ] map out db tables
 - [ ] map out db connections
 - **TBD**
