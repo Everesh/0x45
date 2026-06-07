@@ -1,2 +1,15 @@
 # 0x45
-E? Eee, e eeee! Open forums.
+→ E : a micro forum 
+
+# TODO
+- [x] init compositor
+  - [x] set up phpstan
+  - [x] set up php-cs-fix
+- [ ] setup slim
+- [ ] get sessions working
+- [ ] init session middlewear
+- [ ] map out pages
+  - [ ] extraploate components
+- [ ] map out db tables
+- [ ] map out db connections
+- **TBD**

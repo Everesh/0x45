@@ -1,0 +1,23 @@
+{
+  "name": "everesh/0x45",
+  "description": "a micro forum",
+  "type": "project",
+  "require-dev": {
+    "phpstan/phpstan": "^2.2",
+    "friendsofphp/php-cs-fixer": "^3.95"
+  },
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "Everesh\\ZeroX45\\": "src/"
+    }
+  },
+  "authors": [
+    {
+      "name": "Everesh",
+      "email": "everesh@proton.me"
+    }
+  ],
+  "minimum-stability": "stable",
+  "require": {}
+}
