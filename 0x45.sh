@@ -46,6 +46,10 @@ case "${1:-}" in
     echo -e "${GREEN}==> Installing dependencies${NC}"
     composer install --ignore-platform-req=ext-iconv
     ;;
+  serve)
+    echo -e "${GREEN}==> Serving on ${YELLOW}http://localhost:7539${NC}"
+    php -S localhost:7539 -t public
+    ;;
   lint)
     run_lint
     ;;
@@ -69,6 +73,7 @@ case "${1:-}" in
     echo ""
     echo -e "${YELLOW}Commands:${NC}"
     echo -e "  ${GREEN}install${NC}        Install composer dependencies"
+    echo -e "  ${GREEN}serve${NC}          Serve the page on ${YELLOW}http://localhost:7539${NC}"
     echo -e "  ${GREEN}lint${NC}           Run PHPStan static analysis"
     echo -e "  ${GREEN}format${NC}         Run PHP-CS-Fixer"
     echo -e "  ${GREEN}watch-lint${NC}     Watch ${YELLOW}src/${NC} and re-run PHPStan on change"

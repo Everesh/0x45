@@ -1,0 +1,3 @@
+# Funnel everything to /public
+RewriteEngine On
+RewriteRule ^(.*)$ public/$1 [L]

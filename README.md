@@ -5,7 +5,7 @@
 - [x] init compositor
   - [x] set up phpstan
   - [x] set up php-cs-fix
-- [ ] setup slim
+- [x] setup slim
 - [ ] get sessions working
 - [ ] init session middlewear
 - [ ] map out pages
