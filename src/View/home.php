@@ -1,15 +1,6 @@
-<?php
-/** @var string $sessionId */
-?>
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <title>0x45</title>
-</head>
+<?= $this->fetch("partials/head.php", ["title" => "Home"]) ?>
 <body>
     <p>Hello, 0x45!</p>
     <p>Session ID: <?= htmlspecialchars($sessionId) ?></p>
 </body>
-</html>
+<?= $this->fetch("partials/tail.php") ?>
