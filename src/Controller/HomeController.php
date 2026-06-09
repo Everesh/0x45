@@ -10,14 +10,12 @@ use Slim\Views\PhpRenderer;
 
 class HomeController
 {
-    public function __construct(private readonly PhpRenderer $view)
-    {
-    }
+    public function __construct(private readonly PhpRenderer $view) {}
 
     public function index(Request $request, Response $response): Response
     {
-        return $this->view->render($response, 'home.php', [
-            'sessionId' => session_id(),
+        return $this->view->render($response, "home.php", [
+            "sessionId" => session_id(),
         ]);
     }
 }

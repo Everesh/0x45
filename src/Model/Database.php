@@ -4,30 +4,28 @@ declare(strict_types=1);
 
 namespace Everesh\ZeroX45\Model;
 
-use PDO;
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\DriverManager;
 
 class Database
 {
-    private PDO $pdo;
+    private Connection $connection;
 
     public function __construct()
     {
-        $dsn = sprintf(
-            'mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4',
-            $_ENV['DB_HOST'],
-            $_ENV['DB_PORT'],
-            $_ENV['DB_NAME'],
-        );
-
-        $this->pdo = new PDO($dsn, $_ENV['DB_USER'], $_ENV['DB_PASS'], [
-            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES   => false,
+        $this->connection = DriverManager::getConnection([
+            'driver'   => 'pdo_mysql',
+            'host'     => $_ENV['DB_HOST'],
+            'port'     => (int) $_ENV['DB_PORT'],
+            'dbname'   => $_ENV['DB_NAME'],
+            'user'     => $_ENV['DB_USER'],
+            'password' => $_ENV['DB_PASS'],
+            'charset'  => 'utf8mb4',
         ]);
     }
 
-    public function get(): PDO
+    public function get(): Connection
     {
-        return $this->pdo;
+        return $this->connection;
     }
 }
