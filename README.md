@@ -12,7 +12,7 @@
 - [x] add controller pattern
 - [x] add a letsencrypt cert (already set up on eso.vse.cz)
 - [x] map out pages -> https://excalidraw.com/#json=ix3VlHnzQ_4mml0je12Le,X_FDyNtEh2IbtAUIlwk7aQ
-  - [ ] extraploate components
+  - [x] extraploate components
 - [ ] bcrypt user/passwd
   - [ ] OAuth
 - [ ] map out db tables

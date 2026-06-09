@@ -1,0 +1,69 @@
+/* --- Generic --- */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-width: 100vw;
+
+    background-color: orange;
+}
+
+/* --- rightDock --- */
+
+#rightDock {
+    width: 100%;
+    flex-grow: 1;
+
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+}
+
+@media (max-width: 50em) {
+    #rightDock {
+        flex-wrap: wrap;
+    }
+}
+
+#rightDock > main {
+    background-color: red;
+    flex-grow: 99;
+}
+
+#rightDock > aside {
+    background-color: green;
+    min-width: 20em;
+    flex-grow: 1;
+}
+
+#rightDock > * {
+    padding: 0.5em;
+}
+
+/* --- header --- */
+
+header {
+    padding: 1em 3em;
+    width: 100%;
+
+    display: flex;
+    flex-direction: row;
+    gap: 1em;
+
+    background-color: yellow;
+}
+
+header > :first-child {
+    margin-right: auto;
+}
+
+header > button {
+    padding: 0.5em 1em;
+}
