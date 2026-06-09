@@ -15,15 +15,18 @@ require __DIR__ . "/../vendor/autoload.php";
 Dotenv::createImmutable(__DIR__ . "/../")->load();
 
 $app = AppFactory::create();
-$basePath = rtrim(preg_replace('#/public$#i', '', dirname($_SERVER['SCRIPT_NAME'])), '/');
+$basePath = rtrim(
+    preg_replace('#/public$#i', "", dirname($_SERVER["SCRIPT_NAME"])),
+    "/",
+);
 $app->setBasePath($basePath);
 $view = new PhpRenderer(__DIR__ . "/../src/View", ["basePath" => $basePath]);
-$db = new Database();
+$db = new Database()->get();
 
 $app->add(new SessionMiddleware());
 $dev = ($_ENV["APP_ENV"] ?? "prod") === "dev";
 $app->addErrorMiddleware($dev, true, $dev);
 
-$app->get("/", [new HomeController($view), "index"]);
+$app->get("/", [new HomeController($view, $db), "index"]);
 
 $app->run();
