@@ -1,7 +1,17 @@
+CREATE DATABASE IF NOT EXISTS `zerox45`;
+USE `zerox45`;
+
+DROP TRIGGER IF EXISTS `trg_thread_after_delete`;
+DROP TABLE IF EXISTS `log`;
+DROP TABLE IF EXISTS `thread`;
+DROP TABLE IF EXISTS `post`;
+DROP TABLE IF EXISTS `topic`;
+DROP TABLE IF EXISTS `user`;
+
 CREATE TABLE `user` (
     `id`       BIGINT NOT NULL AUTO_INCREMENT,
     `username` VARCHAR(255) NOT NULL,
-    `passwd`   VARCHAR(255) NOT NULL, --FOR THE LOVE OF GOD, DONT FORGET TO BCRYPT THIS YOU BAFOON
+    `passwd`   VARCHAR(255) NOT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_user_username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -43,9 +53,7 @@ CREATE TABLE `log` (
     `post_id`  BIGINT DEFAULT NULL,
     PRIMARY KEY (`id`),
     CONSTRAINT `fk_log_topic` FOREIGN KEY (`topic_id`) REFERENCES `topic` (`id`) ON DELETE CASCADE,
-    CONSTRAINT `fk_log_post`  FOREIGN KEY (`post_id`)  REFERENCES `post`  (`id`) ON DELETE SET NULL,
-    -- post_id is required for all post-level actions; topic_created logs only need topic_id
-    CONSTRAINT `chk_log_post_required` CHECK (`action` = 'topic_created' OR `post_id` IS NOT NULL)
+    CONSTRAINT `fk_log_post`  FOREIGN KEY (`post_id`)  REFERENCES `post`  (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 DELIMITER //

@@ -2,27 +2,25 @@
 
 declare(strict_types=1);
 
+use Dotenv\Dotenv;
 use Everesh\ZeroX45\Controller\HomeController;
 use Everesh\ZeroX45\Middleware\SessionMiddleware;
+use Everesh\ZeroX45\Model\Database;
 
 use Slim\Factory\AppFactory;
 use Slim\Views\PhpRenderer;
 
 require __DIR__ . "/../vendor/autoload.php";
 
-$app = AppFactory::create();
+Dotenv::createImmutable(__DIR__ . "/../")->load();
 
+$app = AppFactory::create();
 $view = new PhpRenderer(__DIR__ . "/../src/View");
+$db = new Database();
 
 $app->add(new SessionMiddleware());
-
-/**
- * @param bool                  $displayErrorDetails -> Should be set to false in production
- * @param bool                  $logErrors -> Parameter is passed to the default ErrorHandler
- * @param bool                  $logErrorDetails -> Display error details in error log
- * @param LoggerInterface|null  $logger -> Optional PSR-3 Logger
- */
-$app->addErrorMiddleware(true, true, true);
+$dev = ($_ENV["APP_ENV"] ?? "prod") === "dev";
+$app->addErrorMiddleware($dev, true, $dev);
 
 $app->get("/", [new HomeController($view), "index"]);
 
