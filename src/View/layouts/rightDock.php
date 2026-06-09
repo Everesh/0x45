@@ -1,8 +1,8 @@
 <div id="rightDock">
-    <main>
+    <main data-after="<?= htmlspecialchars($mainAfter ?? "") ?>">
         <?= $this->fetch($main, $mainArgs) ?>
     </main>
-    <aside>
+    <aside data-after="<?= htmlspecialchars($asideAfter ?? "") ?>">
         <?= $this->fetch($aside, $asideArgs) ?>
     </aside>
 </div>

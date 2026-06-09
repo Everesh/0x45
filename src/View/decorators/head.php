@@ -4,5 +4,6 @@
     <meta charset="utf-8">
     <link rel="stylesheet" href="/css/style.css">
     <title>0x45: <?= htmlspecialchars($title) ?></title>
+    <script src="/js/animations.js" defer></script>
 </head>
 <body>
