@@ -6,6 +6,10 @@
     padding: 0;
 }
 
+:root {
+    font-family: monospace;
+}
+
 body {
     display: flex;
     flex-direction: column;
@@ -39,12 +43,12 @@ body {
 
 #rightDock > aside {
     background-color: green;
-    min-width: 20em;
+    min-width: 30em;
     flex-grow: 1;
 }
 
 #rightDock > * {
-    padding: 0.5em 1em;
+    padding: 1.5em 3em;
 }
 
 /* --- header --- */
@@ -55,6 +59,7 @@ header {
 
     display: flex;
     flex-direction: row;
+    align-items: center;
     gap: 1em;
 
     background-color: yellow;
