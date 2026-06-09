@@ -8,16 +8,7 @@
           <p><?php
           $n = (int) $post["rating"];
           $sign = $n < 0 ? "-" : "";
-          $abs = abs($n);
-          if (strlen(decbin($abs)) <= 3) {
-              echo $sign . "0b" . decbin($abs);
-          } elseif (strlen(decoct($abs)) <= 3) {
-              echo $sign . "0" . decoct($abs);
-          } elseif (strlen((string) $abs) <= 3) {
-              echo $sign . $abs;
-          } else {
-              echo $sign . "0x" . dechex($abs);
-          }
+          echo $sign . "0x" . str_pad(dechex(abs($n)), 4, "0", STR_PAD_LEFT);
           ?></p>
     </a>
   <?php endforeach; ?>

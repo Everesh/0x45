@@ -25,7 +25,7 @@ class PostController
         //
         // for now this is just Home View trunkated to the specific post
 
-        $data = $this->db
+        $posts = $this->db
             ->createQueryBuilder()
             ->select("p.*", "COALESCE(SUM(e.vote), 0) AS rating")
             ->from("thread", "t")
@@ -36,9 +36,14 @@ class PostController
             ->setParameter(0, $args["id"])
             ->fetchAllAssociative();
 
+        if (empty($posts)) {
+            $response->getBody()->write("404 Not Found");
+            return $response->withStatus(404);
+        }
+
         return $this->view->render($response, "home.php", [
             "sessionId" => session_id(),
-            "data" => $data,
+            "posts" => $posts,
         ]);
     }
 }

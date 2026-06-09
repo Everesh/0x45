@@ -2,7 +2,7 @@
 <?= $this->fetch("partials/header.php") ?>
 <?= $this->fetch("layouts/rightDock.php", [
     "main" => "partials/list.php",
-    "mainArgs" => ["posts" => $data],
+    "mainArgs" => ["posts" => $posts],
     "mainAfter" => "threads",
     "aside" => "partials/tmp.php",
     "asideArgs" => ["short" => true],

@@ -18,7 +18,7 @@ class HomeController
 
     public function index(Request $request, Response $response): Response
     {
-        $data = $this->db
+        $posts = $this->db
             ->createQueryBuilder()
             ->select("p.*", "COALESCE(SUM(e.vote), 0) AS rating")
             ->from("thread", "t")
@@ -30,7 +30,7 @@ class HomeController
 
         return $this->view->render($response, "home.php", [
             "sessionId" => session_id(),
-            "data" => $data,
+            "posts" => $posts,
         ]);
     }
 }
