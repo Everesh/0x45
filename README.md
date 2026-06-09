@@ -15,6 +15,9 @@
   - [x] extraploate components
 - [ ] bcrypt user/passwd
   - [ ] OAuth
-- [ ] map out db tables
-- [ ] map out db connections
+- [x] map out db tables
+- [x] map out db connections
 - **TBD**
+
+## DB model
+![model](https://github.com/user-attachments/assets/0a2d948e-54b0-4c8d-869b-e4cfc6a6b6af)
