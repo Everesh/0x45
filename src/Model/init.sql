@@ -2,6 +2,8 @@ CREATE DATABASE IF NOT EXISTS `zerox45`;
 USE `zerox45`;
 
 DROP TRIGGER IF EXISTS `trg_thread_after_delete`;
+DROP TABLE IF EXISTS `affinity`;
+DROP TABLE IF EXISTS `endorse`;
 DROP TABLE IF EXISTS `log`;
 DROP TABLE IF EXISTS `thread`;
 DROP TABLE IF EXISTS `post`;
@@ -26,14 +28,13 @@ CREATE TABLE `topic` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `post` (
-    `id`         BIGINT NOT NULL AUTO_INCREMENT,
-    `parent_id`  BIGINT DEFAULT NULL,
-    `title`      VARCHAR(255) NOT NULL,
-    `content`    TEXT NOT NULL,
-    `creator_id` BIGINT DEFAULT NULL,
+    `id`          BIGINT NOT NULL AUTO_INCREMENT,
+    `parent_id`   BIGINT DEFAULT NULL,
+    `title`       VARCHAR(255) NOT NULL,
+    `content`     TEXT NOT NULL,
+    `creator_key` VARCHAR(255) NOT NULL,
     PRIMARY KEY (`id`),
-    CONSTRAINT `fk_post_parent`  FOREIGN KEY (`parent_id`)  REFERENCES `post` (`id`) ON DELETE CASCADE,
-    CONSTRAINT `fk_post_creator` FOREIGN KEY (`creator_id`) REFERENCES `user` (`id`) ON DELETE SET NULL
+    CONSTRAINT `fk_post_parent` FOREIGN KEY (`parent_id`) REFERENCES `post` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `thread` (
@@ -47,13 +48,28 @@ CREATE TABLE `thread` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `log` (
-    `id`       BIGINT NOT NULL AUTO_INCREMENT,
-    `action`   ENUM('topic_created', 'post_created', 'post_edited', 'post_deleted') NOT NULL,
-    `topic_id` BIGINT NOT NULL,
-    `post_id`  BIGINT DEFAULT NULL,
+    `id`        BIGINT NOT NULL AUTO_INCREMENT,
+    `action`    ENUM('post_created', 'post_patched', 'post_deleted', 'post_seen') NOT NULL,
+    `post_id`   BIGINT NOT NULL,
+    `timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
-    CONSTRAINT `fk_log_topic` FOREIGN KEY (`topic_id`) REFERENCES `topic` (`id`) ON DELETE CASCADE,
-    CONSTRAINT `fk_log_post`  FOREIGN KEY (`post_id`)  REFERENCES `post`  (`id`) ON DELETE SET NULL
+    CONSTRAINT `fk_log_post` FOREIGN KEY (`post_id`) REFERENCES `post` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `endorse` (
+    `id_post`   BIGINT NOT NULL,
+    `voter_key` VARCHAR(255) NOT NULL,
+    `vote`      TINYINT(1) NOT NULL,
+    PRIMARY KEY (`id_post`, `voter_key`),
+    CONSTRAINT `fk_endorse_post` FOREIGN KEY (`id_post`) REFERENCES `post` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `affinity` (
+    `id_user`  BIGINT NOT NULL,
+    `id_topic` BIGINT NOT NULL,
+    PRIMARY KEY (`id_user`, `id_topic`),
+    CONSTRAINT `fk_affinity_user`  FOREIGN KEY (`id_user`)  REFERENCES `user`  (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_affinity_topic` FOREIGN KEY (`id_topic`) REFERENCES `topic` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 DELIMITER //

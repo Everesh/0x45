@@ -1,23 +1,21 @@
 # 0x45
 → E : a micro forum 
 
-# TODO
-- [x] init composer
-  - [x] set up phpstan
-  - [x] set up php-cs-fix
-- [x] setup slim
-- [x] get sessions working
-- [x] init session middlewear
-- [x] setup view renderer
-- [x] add controller pattern
-- [x] add a letsencrypt cert (already set up on eso.vse.cz)
-- [x] map out pages -> https://excalidraw.com/#json=ix3VlHnzQ_4mml0je12Le,X_FDyNtEh2IbtAUIlwk7aQ
-  - [x] extraploate components
-- [ ] bcrypt user/passwd
-  - [ ] OAuth
-- [x] map out db tables
-- [x] map out db connections
-- **TBD**
+![preview img](https://github.com/user-attachments/assets/4ba36b66-6572-4fc4-90d5-3272f9ae38aa)
+
+## Installation
+### Prerequisites
+- [composer](https://getcomposer.org/)
+- [mariadb/mysql service](https://mariadb.org/)
+### Settup
+```bash
+git clone https://github.com/Everesh/0x45.git && cd ./0x45
+composer install
+cp ./.env.example ./.env
+```
+- run the `./src/Model/init.sql` against your mariadb/mysql service
+- setup your .env
+- serve via apache || php -S || w/e
 
 ## DB model
-![model](https://github.com/user-attachments/assets/ebe91320-0528-4845-be88-66c28517dd62)
+![model img](https://github.com/user-attachments/assets/46b379a7-92ab-4223-8978-075efc8f67d4)
