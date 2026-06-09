@@ -10,7 +10,7 @@
 - [x] init session middlewear
 - [x] setup view renderer
 - [x] add controller pattern
-- [ ] add a letsencrypt cert
+- [x] add a letsencrypt cert (already set up on eso.vse.cz)
 - [x] map out pages -> https://excalidraw.com/#json=ix3VlHnzQ_4mml0je12Le,X_FDyNtEh2IbtAUIlwk7aQ
   - [ ] extraploate components
 - [ ] bcrypt user/passwd
