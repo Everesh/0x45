@@ -20,4 +20,4 @@
 - **TBD**
 
 ## DB model
-![model](https://github.com/user-attachments/assets/1a1d777f-2905-4386-b7d7-33320d6e320c)
+![model](https://github.com/user-attachments/assets/ebe91320-0528-4845-be88-66c28517dd62)

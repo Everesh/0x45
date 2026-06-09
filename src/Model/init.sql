@@ -1,7 +1,7 @@
 CREATE TABLE `user` (
     `id`       BIGINT NOT NULL AUTO_INCREMENT,
     `username` VARCHAR(255) NOT NULL,
-    `passwd`   TEXT NOT NULL, --FOR THE LOVE OF GOD, DONT FORGET TO BCRYPT THIS YOU BAFOON
+    `passwd`   VARCHAR(255) NOT NULL, --FOR THE LOVE OF GOD, DONT FORGET TO BCRYPT THIS YOU BAFOON
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_user_username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -31,6 +31,7 @@ CREATE TABLE `thread` (
     `topic_id`  BIGINT NOT NULL,
     `anchor_id` BIGINT NOT NULL,
     PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_anchor_id` (`anchor_id`),
     CONSTRAINT `fk_thread_topic`  FOREIGN KEY (`topic_id`)  REFERENCES `topic` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_thread_anchor` FOREIGN KEY (`anchor_id`) REFERENCES `post`  (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -42,7 +43,16 @@ CREATE TABLE `log` (
     `post_id`  BIGINT DEFAULT NULL,
     PRIMARY KEY (`id`),
     CONSTRAINT `fk_log_topic` FOREIGN KEY (`topic_id`) REFERENCES `topic` (`id`) ON DELETE CASCADE,
-    CONSTRAINT `fk_log_post`  FOREIGN KEY (`post_id`)  REFERENCES `post`  (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_log_post`  FOREIGN KEY (`post_id`)  REFERENCES `post`  (`id`) ON DELETE SET NULL,
     -- post_id is required for all post-level actions; topic_created logs only need topic_id
     CONSTRAINT `chk_log_post_required` CHECK (`action` = 'topic_created' OR `post_id` IS NOT NULL)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf9mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+DELIMITER //
+CREATE TRIGGER `trg_thread_after_delete`
+AFTER DELETE ON `thread`
+FOR EACH ROW
+BEGIN
+    DELETE FROM `post` WHERE `id` = OLD.anchor_id;
+END//
+DELIMITER ;
