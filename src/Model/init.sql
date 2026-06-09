@@ -1,24 +1,24 @@
 CREATE TABLE `user` (
     `id`       BIGINT NOT NULL AUTO_INCREMENT,
-    `username` TEXT NOT NULL,
+    `username` VARCHAR(255) NOT NULL,
     `passwd`   TEXT NOT NULL, --FOR THE LOVE OF GOD, DONT FORGET TO BCRYPT THIS YOU BAFOON
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uq_user_username` (`username`(255))
+    UNIQUE KEY `uq_user_username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `topic` (
     `id`         BIGINT NOT NULL AUTO_INCREMENT,
-    `creator_id` BIGINT NOT NULL,
-    `name`       TEXT NOT NULL,
+    `creator_id` BIGINT DEFAULT NULL,
+    `name`       VARCHAR(255) NOT NULL,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uq_topic_name` (`name`(255)),
-    CONSTRAINT `fk_topic_creator` FOREIGN KEY (`creator_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
+    UNIQUE KEY `uq_topic_name` (`name`),
+    CONSTRAINT `fk_topic_creator` FOREIGN KEY (`creator_id`) REFERENCES `user` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `post` (
     `id`         BIGINT NOT NULL AUTO_INCREMENT,
     `parent_id`  BIGINT DEFAULT NULL,
-    `title`      TEXT NOT NULL,
+    `title`      VARCHAR(255) NOT NULL,
     `content`    TEXT NOT NULL,
     `creator_id` BIGINT DEFAULT NULL,
     PRIMARY KEY (`id`),
@@ -45,4 +45,4 @@ CREATE TABLE `log` (
     CONSTRAINT `fk_log_post`  FOREIGN KEY (`post_id`)  REFERENCES `post`  (`id`) ON DELETE CASCADE,
     -- post_id is required for all post-level actions; topic_created logs only need topic_id
     CONSTRAINT `chk_log_post_required` CHECK (`action` = 'topic_created' OR `post_id` IS NOT NULL)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf9mb4_unicode_ci;
