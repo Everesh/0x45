@@ -4,12 +4,11 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-
-    font-size: 0.9rem;
 }
 
 :root {
     font-family: monospace;
+    overscroll-behavior: none;
 
     --border-color: #535353;
     --text: #eeeeee;
@@ -21,7 +20,7 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    min-width: 100vw;
+    width: 100%;
 
     color: var(--text);
     background-image:
@@ -47,14 +46,6 @@ button:hover {
 a {
     text-decoration: none;
     color: inherit;
-}
-
-h2 {
-    font-size: 1.5rem;
-}
-
-h3 {
-    font-size: 1rem;
 }
 
 /* --- rightDock --- */
@@ -83,6 +74,7 @@ h3 {
 #rightDock > main {
     background-color: var(--surface);
     flex-grow: 1;
+    min-width: 0;
     position: relative;
 }
 
@@ -90,7 +82,9 @@ h3 {
     background-color: var(--surface);
     border-left: 1px solid var(--border-color);
     width: 30rem;
+    max-width: 100%;
     position: relative;
+    flex-shrink: 0;
 }
 
 #rightDock > * {
@@ -152,9 +146,15 @@ header > :first-child {
     gap: 2rem;
 }
 
-.listItem > * {
+.listItem > :first-child {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.listItem > :first-child > * {
+    min-width: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    min-width: 0;
 }
