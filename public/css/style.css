@@ -4,6 +4,8 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+
+    font-size: 0.9rem;
 }
 
 :root {
@@ -47,6 +49,14 @@ a {
     color: inherit;
 }
 
+h2 {
+    font-size: 1.5rem;
+}
+
+h3 {
+    font-size: 1rem;
+}
+
 /* --- rightDock --- */
 
 #rightDock {
@@ -66,20 +76,20 @@ a {
     #rightDock > aside {
         border-top: 1px solid var(--border-color);
         border-left: none !important;
+        flex-grow: 1;
     }
 }
 
 #rightDock > main {
     background-color: var(--surface);
-    flex-grow: 99;
+    flex-grow: 1;
     position: relative;
 }
 
 #rightDock > aside {
     background-color: var(--surface);
     border-left: 1px solid var(--border-color);
-    min-width: 30em;
-    flex-grow: 1;
+    width: 30rem;
     position: relative;
 }
 
@@ -132,8 +142,19 @@ header > :first-child {
     border-bottom: 1px solid var(--border-color);
     padding: 0.5em;
 
+    max-height: 4rem;
+    overflow: hidden;
+
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
+    gap: 2rem;
+}
+
+.listItem > * {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
 }
