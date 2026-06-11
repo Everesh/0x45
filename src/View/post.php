@@ -8,7 +8,7 @@
 ?>
 
 <?= $this->fetch("decorators/head.php", ["title" => $anchor["title"]]) ?>
-<?= $this->fetch("partials/header.php") ?>
+<?= $this->fetch("partials/header.php", ["topic" => $anchor["topic"]]) ?>
 <?= $this->fetch("layouts/rightDock.php", [
     "main" => "partials/thread.php",
     "mainArgs" => [

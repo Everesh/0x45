@@ -37,9 +37,11 @@ class PostController
                 "COALESCE(SUM(e.vote), 0) AS rating",
                 "u.username",
                 "my.vote AS my_vote",
+                "tp.name AS topic",
             )
             ->from("thread", "t")
             ->leftJoin("t", "post", "p", "t.anchor_id = p.id")
+            ->leftJoin("t", "topic", "tp", "tp.id = t.topic_id")
             ->leftJoin("p", "endorse", "e", "e.id_post = p.id")
             ->leftJoin("p", "user", "u", "CONCAT('u:', u.id) = p.creator_key")
             ->leftJoin(
@@ -51,6 +53,7 @@ class PostController
             ->groupBy("p.id")
             ->addGroupBy("u.username")
             ->addGroupBy("my.vote")
+            ->addGroupBy("tp.name")
             ->where("p.id = :id")
             ->setParameter("id", $args["id"])
             ->setParameter("key", $voterKey)

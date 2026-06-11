@@ -130,6 +130,16 @@ header > :nth-child(2) {
     margin-right: auto;
 }
 
+/* two flush anchors: "topic:" -> index, the word -> its page */
+.topicCrumb {
+    display: flex;
+    flex-direction: row;
+}
+
+.topicCrumb a:hover {
+    color: var(--highlight);
+}
+
 header *:not(h2) {
     font-size: 1rem;
 }

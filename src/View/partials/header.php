@@ -8,9 +8,15 @@
 
 <header data-after="header">
     <a href="<?= $basePath ?>/"><h2>0x45</h2></a>
-    <a href="<?= $basePath ?>/topics">
-        <p>topic:<?= htmlspecialchars($topic ?? "all") ?></p>
-    </a>
+    <div class="topicCrumb">
+        <a href="<?= $basePath ?>/topics"><p hover-data-scramble>topic</p></a>
+        <p>:</p>
+        <a href="<?= isset($topic) && $topic !== null
+            ? $basePath . "/topic/" . htmlspecialchars($topic)
+            : $basePath . "/" ?>">
+            <p hover-data-scramble><?= htmlspecialchars($topic ?? "all") ?></p>
+        </a>
+    </div>
     <?php if ($session->isLoggedIn()): ?>
         <p><?= htmlspecialchars($session->username()) ?></p>
         <form method="post" action="<?= $basePath ?>/logout">
