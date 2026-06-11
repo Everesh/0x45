@@ -11,6 +11,16 @@ Dotenv::createImmutable(__DIR__ . "/../../../")->load();
 
 $conn = (new Database())->get();
 
+// reset
+$conn->executeStatement("SET FOREIGN_KEY_CHECKS = 0");
+foreach (
+    ["affinity", "endorse", "log", "thread", "post", "topic", "user"]
+    as $table
+) {
+    $conn->executeStatement("TRUNCATE TABLE `$table`");
+}
+$conn->executeStatement("SET FOREIGN_KEY_CHECKS = 1");
+
 // users
 $conn->insert("user", [
     "username" => "alice",
