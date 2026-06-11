@@ -2,7 +2,8 @@
 
 $finder = new PhpCsFixer\Finder()
     ->exclude(__DIR__ . "/src/View")
-    ->in(__DIR__ . "/src");
+    ->in(__DIR__ . "/src")
+    ->in(__DIR__ . "/public");
 
 return new PhpCsFixer\Config()
     ->setRules([
@@ -12,5 +13,6 @@ return new PhpCsFixer\Config()
             "allow_single_line_anonymous_functions" => true,
         ],
         "single_line_empty_body" => true,
+        "new_expression_parentheses" => ["use_parentheses" => true],
     ])
     ->setFinder($finder);

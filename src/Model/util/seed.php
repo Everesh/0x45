@@ -9,7 +9,7 @@ use Everesh\ZeroX45\Model\LogAction;
 require __DIR__ . "/../../../vendor/autoload.php";
 Dotenv::createImmutable(__DIR__ . "/../../../")->load();
 
-$conn = new Database()->get();
+$conn = (new Database())->get();
 
 // users
 $conn->insert("user", [

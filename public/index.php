@@ -7,7 +7,6 @@ use Everesh\ZeroX45\Controller\HomeController;
 use Everesh\ZeroX45\Controller\PostController;
 use Everesh\ZeroX45\Middleware\SessionMiddleware;
 use Everesh\ZeroX45\Model\Database;
-
 use Slim\Factory\AppFactory;
 use Slim\Views\PhpRenderer;
 
@@ -22,7 +21,7 @@ $basePath = rtrim(
 );
 $app->setBasePath($basePath);
 $view = new PhpRenderer(__DIR__ . "/../src/View", ["basePath" => $basePath]);
-$db = new Database()->get();
+$db = (new Database())->get();
 
 $app->add(new SessionMiddleware());
 $dev = ($_ENV["APP_ENV"] ?? "prod") === "dev";
