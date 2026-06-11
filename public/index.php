@@ -30,5 +30,12 @@ $app->addErrorMiddleware($dev, true, $dev);
 
 $app->get("/", [new HomeController($view, $db), "index"]);
 $app->get("/post/{id}", [new PostController($view, $db), "show"]);
+$app->post("/post/{id}/endorse", [new PostController($view, $db), "endorse"]);
+$app->get(
+    "/post/{id}/endorse",
+    fn ($request, $response) => $view
+        ->render($response, "405.php")
+        ->withStatus(405),
+);
 
 $app->run();
