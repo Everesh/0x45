@@ -6,8 +6,10 @@ namespace Everesh\ZeroX45\Controller;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
+use Everesh\ZeroX45\Model\LogAction;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
+use Slim\Routing\RouteContext;
 use Slim\Views\PhpRenderer;
 
 class PostController
@@ -162,6 +164,162 @@ class PostController
             ->write(json_encode(["rating" => $rating, "vote" => $myVote]));
 
         return $response->withHeader("Content-Type", "application/json");
+    }
+
+    /**
+     * @param $args array<URL PARAM>
+     */
+    public function reply(
+        Request $request,
+        Response $response,
+        array $args,
+    ): Response {
+        $body = (array) $request->getParsedBody();
+        $content = trim((string) ($body["content"] ?? ""));
+        if ($content === "") {
+            return $this->view->render($response, "400.php")->withStatus(400);
+        }
+
+        $parent = $this->db->fetchAssociative(
+            "SELECT id, deleted FROM post WHERE id = ?",
+            [(int) $args["id"]],
+        );
+        if (!$parent || (int) $parent["deleted"] === 1) {
+            return $this->view->render($response, "404.php")->withStatus(404);
+        }
+
+        $this->db->insert("post", [
+            "parent_id" => (int) $args["id"],
+            "title" => null,
+            "content" => $content,
+            "creator_key" => $request->getAttribute("session")->key(),
+        ]);
+        $this->db->insert("log", [
+            "action" => LogAction::PostCreated->value,
+            "post_id" => (int) $this->db->lastInsertId(),
+        ]);
+
+        return $this->redirectToThread(
+            $request,
+            $response,
+            (int) ($body["anchor"] ?? 0),
+        );
+    }
+
+    /**
+     * @param $args array<URL PARAM>
+     */
+    public function edit(
+        Request $request,
+        Response $response,
+        array $args,
+    ): Response {
+        $body = (array) $request->getParsedBody();
+        $content = trim((string) ($body["content"] ?? ""));
+        if ($content === "") {
+            return $this->view->render($response, "400.php")->withStatus(400);
+        }
+
+        $post = $this->fetchOwned(
+            (int) $args["id"],
+            $request->getAttribute("session")->key(),
+        );
+        if (is_int($post)) {
+            return $this->view
+                ->render($response, $post . ".php")
+                ->withStatus($post);
+        }
+
+        $this->db->update(
+            "post",
+            ["content" => $content],
+            ["id" => (int) $post["id"]],
+        );
+        $this->db->insert("log", [
+            "action" => LogAction::PostPatched->value,
+            "post_id" => (int) $post["id"],
+        ]);
+
+        return $this->redirectToThread(
+            $request,
+            $response,
+            (int) ($body["anchor"] ?? 0),
+        );
+    }
+
+    /**
+     * called over fetch, answers {"redirect": url}
+     *
+     * leeches soft delete to keep their subtree alive, anchors take
+     * the whole thread down via the thread after-delete trigger
+     *
+     * @param $args array<URL PARAM>
+     */
+    public function delete(
+        Request $request,
+        Response $response,
+        array $args,
+    ): Response {
+        $post = $this->fetchOwned(
+            (int) $args["id"],
+            $request->getAttribute("session")->key(),
+        );
+        if (is_int($post)) {
+            return $response->withStatus($post);
+        }
+
+        $basePath = RouteContext::fromRequest($request)->getBasePath();
+
+        if ($post["parent_id"] === null) {
+            $this->db->delete("thread", ["anchor_id" => (int) $post["id"]]);
+            $redirect = $basePath . "/";
+        } else {
+            $this->db->update(
+                "post",
+                ["content" => "", "deleted" => 1],
+                ["id" => (int) $post["id"]],
+            );
+            $this->db->insert("log", [
+                "action" => LogAction::PostDeleted->value,
+                "post_id" => (int) $post["id"],
+            ]);
+
+            $body = (array) $request->getParsedBody();
+            $redirect = $basePath . "/post/" . (int) ($body["anchor"] ?? 0);
+        }
+
+        $response->getBody()->write(json_encode(["redirect" => $redirect]));
+
+        return $response->withHeader("Content-Type", "application/json");
+    }
+
+    /**
+     * @return array|int the post row when owned by the caller,
+     *                   404 when missing or deleted, 403 when not owned
+     */
+    private function fetchOwned(int $id, string $key): array|int
+    {
+        $post = $this->db->fetchAssociative("SELECT * FROM post WHERE id = ?", [
+            $id,
+        ]);
+
+        if (!$post || (int) $post["deleted"] === 1) {
+            return 404;
+        }
+
+        return $post["creator_key"] === $key ? $post : 403;
+    }
+
+    private function redirectToThread(
+        Request $request,
+        Response $response,
+        int $anchorId,
+    ): Response {
+        $basePath = RouteContext::fromRequest($request)->getBasePath();
+
+        return $response
+            ->withHeader("Location", $basePath . "/post/" . $anchorId)
+            ->withStatus(302);
     }
 
     /**

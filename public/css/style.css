@@ -102,6 +102,7 @@ a {
 #centerLayout::after,
 .thread-anchor::after,
 .thread-leeches::after,
+.leechBox.open::after,
 header::after {
     position: absolute;
     top: 0.3em;
@@ -187,7 +188,30 @@ header > :first-child {
 .replyHead > div {
     display: flex;
     flex-direction: row;
+    align-items: baseline;
     gap: 0.5em;
+}
+
+/* dimmed action row under the comment body */
+.postActions {
+    display: flex;
+    flex-direction: row;
+    gap: 0.75em;
+    margin-top: 0.35em;
+    align-items: center;
+}
+
+.reply > .postActions {
+    padding-left: 1em;
+}
+
+button[data-leech] {
+    color: color-mix(in srgb, var(--text), transparent 40%);
+}
+
+/* the callers own name */
+.thread .me {
+    color: var(--highlight);
 }
 
 .thread .postContent {
@@ -256,6 +280,82 @@ header > :first-child {
 #centerLayout > :first-child {
     width: min(100%, 1040px);
     padding-top: min(10vh, 4rem);
+}
+
+/* --- leech box --- */
+
+.leechBox {
+    display: grid;
+    grid-template-rows: 0fr;
+    /* margins + borders snap back only after the collapse is done,
+       the .open variant below flips them instantly instead */
+    transition:
+        grid-template-rows 0.25s ease,
+        margin 0s linear 0.25s,
+        border-width 0s linear 0.25s;
+    border-top: 0 solid var(--border-color);
+    border-bottom: 0 solid var(--border-color);
+    position: relative;
+    background-color: color-mix(in srgb, var(--surface), black 8%);
+}
+
+.leechBox.open {
+    grid-template-rows: 1fr;
+    transition: grid-template-rows 0.25s ease;
+    margin-top: 0.75em;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+}
+
+/* full bleed: cancel the anchor pane padding, its own delimiter
+   border doubles as the bottom edge of the box */
+.thread-anchor > .leechBox.open {
+    margin-left: -3em;
+    margin-right: -3em;
+    margin-bottom: -1.5em;
+    border-bottom: none;
+}
+
+/* full bleed: --depth (set inline by replies.php) walks back the
+   1em + 1px inset every nesting level adds, the right side only
+   fights the pane padding */
+.reply > .leechBox.open {
+    margin-left: calc(var(--depth) * (-1em - 1px));
+    margin-right: -3em;
+    margin-bottom: -0.25em;
+}
+
+.leechBox > form {
+    overflow: hidden;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75em;
+    transition: padding 0.25s ease;
+    padding: 0 1em;
+}
+
+.leechBox.open > form {
+    padding: 1.5em 1em 1em;
+}
+
+.leechBox textarea {
+    font-family: monospace;
+    color: var(--text);
+    background: transparent;
+    border: none;
+    padding: 0.5em;
+    resize: none;
+}
+
+.leechBox textarea:focus {
+    outline: none;
+}
+
+.leechBox form > div {
+    display: flex;
+    flex-direction: row;
+    gap: 1em;
 }
 
 /* --- auth --- */

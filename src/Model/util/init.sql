@@ -33,6 +33,7 @@ CREATE TABLE `post` (
     `title`       VARCHAR(255) DEFAULT NULL,
     `content`     TEXT NOT NULL,
     `creator_key` VARCHAR(255) NOT NULL,
+    `deleted`     TINYINT(1) NOT NULL DEFAULT 0,
     PRIMARY KEY (`id`),
     CONSTRAINT `fk_post_parent` FOREIGN KEY (`parent_id`) REFERENCES `post` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -14,11 +14,11 @@ if (!function_exists("asHex")) {
         $sign = $n < 0 ? "-" : "";
         return $sign . "0x" . str_pad(dechex(abs($n)), 3, "0", STR_PAD_LEFT);
     }
-}
-?>
+} ?>
 
 <article class="thread">
     <div class="thread-anchor" data-after="thread-anchor">
+        <?php $mine = $anchor["creator_key"] === $session->key(); ?>
         <div class="postHead">
             <h2><?= htmlspecialchars($anchor["title"]) ?></h2>
             <div
@@ -38,18 +38,35 @@ if (!function_exists("asHex")) {
             </div>
         </div>
         <p class="postContent"><?= htmlspecialchars($anchor["content"]) ?></p>
-        <h4 style="margin-top: 1.5em;">- <?= str_starts_with(
-            $anchor["creator_key"],
-            "s:",
-        )
-            ? "<em>" . htmlspecialchars($anchor["username"]) . "</em>"
-            : htmlspecialchars($anchor["username"]) ?></h4>
+        <div class="postActions"><h4 <?= $mine ? ' class="me"' : "" ?>>-
+                    <?= str_starts_with($anchor["creator_key"], "s:")
+                        ? "<em>" .
+                            htmlspecialchars($anchor["username"]) .
+                            "</em>"
+                        : htmlspecialchars($anchor["username"]) ?></h4>
+            <button hover-data-scramble data-leech="reply">reply</button>
+            <?php if ($mine): ?>
+                <button hover-data-scramble data-leech="edit">edit</button>
+                <button hover-data-scramble data-leech="del"
+                    data-url="<?= $basePath .
+                        "/post/" .
+                        (int) $anchor["id"] .
+                        "/delete" ?>"
+                    data-confirm="this deletes the WHOLE thread, sure?"
+                >del</button>
+            <?php endif; ?>
+        </div>
+        <?= $this->fetch("partials/leechBox.php", [
+            "postId" => (int) $anchor["id"],
+            "anchorId" => (int) $anchor["id"],
+        ]) ?>
     </div>
     <div class="thread-leeches" data-after="thread-leeches">
         <?= $this->fetch("partials/replies.php", [
             "session" => $session,
             "replies" => $replies,
             "parentId" => (int) $anchor["id"],
+            "anchorId" => (int) $anchor["id"],
         ]) ?>
     </div>
 </article>

@@ -41,6 +41,9 @@ $app->post("/register", [new AuthController($view, $db), "register"]);
 $app->post("/logout", [new AuthController($view, $db), "logout"]);
 $app->get("/post/{id}", [new PostController($view, $db), "show"]);
 $app->post("/post/{id}/endorse", [new PostController($view, $db), "endorse"]);
+$app->post("/post/{id}/reply", [new PostController($view, $db), "reply"]);
+$app->post("/post/{id}/edit", [new PostController($view, $db), "edit"]);
+$app->post("/post/{id}/delete", [new PostController($view, $db), "delete"]);
 $app->get(
     "/post/{id}/endorse",
     fn ($request, $response) => $view

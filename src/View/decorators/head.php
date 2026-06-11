@@ -14,5 +14,6 @@
     <title>0x45: <?= htmlspecialchars($title) ?></title>
     <script src="<?= $basePath ?>/js/animations.js" defer></script>
     <script src="<?= $basePath ?>/js/endorse.js" defer></script>
+    <script src="<?= $basePath ?>/js/leech.js" defer></script>
 </head>
 <body>
