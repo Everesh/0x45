@@ -226,6 +226,11 @@ header > :first-child {
     border-bottom: 1px solid var(--border-color);
 }
 
+.replyHead > h4 {
+    overflow-x: hidden;
+    flex-shrink: 1;
+}
+
 .reply .postContent {
     margin-top: 0.25em;
     padding-left: 1em;

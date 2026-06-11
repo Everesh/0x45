@@ -1,6 +1,7 @@
 <?php
 /**
  * @var     $this       php renderer reference
+ * @var     $session    SessionStore
  * @var     $anchor     post
  * @var     $replies    array<parent_id, array<post>>
  */
@@ -10,7 +11,11 @@
 <?= $this->fetch("partials/header.php") ?>
 <?= $this->fetch("layouts/rightDock.php", [
     "main" => "partials/thread.php",
-    "mainArgs" => ["anchor" => $anchor, "replies" => $replies],
+    "mainArgs" => [
+        "session" => $session,
+        "anchor" => $anchor,
+        "replies" => $replies,
+    ],
     "aside" => "partials/tmp.php",
     "asideArgs" => ["short" => true],
     "asideAfter" => "log",

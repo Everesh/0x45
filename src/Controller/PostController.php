@@ -26,11 +26,13 @@ class PostController
     ): Response {
         $anchor = $this->db
             ->createQueryBuilder()
-            ->select("p.*", "COALESCE(SUM(e.vote), 0) AS rating")
+            ->select("p.*", "COALESCE(SUM(e.vote), 0) AS rating", "u.username")
             ->from("thread", "t")
             ->leftJoin("t", "post", "p", "t.anchor_id = p.id")
             ->leftJoin("p", "endorse", "e", "e.id_post = p.id")
+            ->leftJoin("p", "user", "u", "CONCAT('u:', u.id) = p.creator_key")
             ->groupBy("p.id")
+            ->addGroupBy("u.username")
             ->where("p.id = ?")
             ->setParameter(0, $args["id"])
             ->fetchAssociative();
@@ -43,24 +45,26 @@ class PostController
         $descendants = $this->db
             ->executeQuery(
                 <<<'SQL'
-                    WITH RECURSIVE descendant AS (
-                        SELECT p.*, 1 AS depth
-                        FROM post p
-                        WHERE p.parent_id = ?
-                        UNION ALL
-                        SELECT p.*, d.depth + 1
-                        FROM post p
-                        JOIN descendant d ON p.parent_id = d.id
-                    )
-                    SELECT d.*, COALESCE(r.rating, 0) AS rating
-                    FROM descendant d
-                    LEFT JOIN (
-                        SELECT id_post, SUM(vote) AS rating
-                        FROM endorse
-                        GROUP BY id_post
-                    ) r ON r.id_post = d.id
-                    ORDER BY d.depth, d.id
-                    SQL,
+                WITH RECURSIVE descendant AS (
+                    SELECT p.*, 1 AS depth
+                    FROM post p
+                    WHERE p.parent_id = ?
+                    UNION ALL
+                    SELECT p.*, d.depth + 1
+                    FROM post p
+                    JOIN descendant d ON p.parent_id = d.id
+                )
+                SELECT d.*, COALESCE(r.rating, 0) AS rating, u.username
+                FROM descendant d
+                LEFT JOIN (
+                    SELECT id_post, SUM(vote) AS rating
+                    FROM endorse
+                    GROUP BY id_post
+                ) r ON r.id_post = d.id
+                LEFT JOIN user u ON CONCAT('u:', u.id) = d.creator_key
+                ORDER BY d.depth, d.id
+                SQL
+                ,
                 [$args["id"]],
             )
             ->fetchAllAssociative();
@@ -73,6 +77,7 @@ class PostController
 
         return $this->view->render($response, "post.php", [
             "sessionId" => session_id(),
+            "session" => $request->getAttribute("session"),
             "anchor" => $anchor,
             "replies" => $replies,
         ]);
