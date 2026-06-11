@@ -40,8 +40,7 @@ class PostController
             ->fetchAllAssociative();
 
         if (empty($posts)) {
-            $response->getBody()->write("404 Not Found");
-            return $response->withStatus(404);
+            return $this->view->render($response, "404.php")->withStatus(404);
         }
 
         return $this->view->render($response, "home.php", [

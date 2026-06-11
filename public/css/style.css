@@ -23,10 +23,7 @@ body {
     width: 100%;
 
     color: var(--text);
-    background-image:
-        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-    background-size: 20px 20px;
+    background-color: var(--surface);
 }
 
 button {
@@ -95,6 +92,7 @@ a {
 
 #rightDock > main::after,
 #rightDock > aside::after,
+#centerLayout::after,
 header::after {
     position: absolute;
     top: 0.3em;
@@ -157,4 +155,21 @@ header > :first-child {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+/* --- CenterLayout --- */
+
+#centerLayout {
+    flex-grow: 1;
+    position: relative;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    width: 100vw;
+}
+
+#centerLayout > :first-child {
+    width: min(100%, 1040px);
+    padding-top: min(10vh, 4rem);
 }
