@@ -18,7 +18,11 @@ if (!function_exists("asHex")) {
     <div class="thread-anchor" data-after="thread-anchor">
         <div class="postHead">
             <h2><?= htmlspecialchars($anchor["title"]) ?></h2>
-            <p><?= htmlspecialchars(asHex((int) $anchor["rating"])) ?></p>
+            <div>
+                <button hover-data-scramble>--</button>
+                <p><?= htmlspecialchars(asHex((int) $anchor["rating"])) ?></p>
+                <button hover-data-scramble>++</button>
+            </div>
         </div>
         <p class="postContent"><?= htmlspecialchars($anchor["content"]) ?></p>
     </div>
