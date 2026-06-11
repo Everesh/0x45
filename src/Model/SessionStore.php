@@ -8,10 +8,17 @@ class SessionStore
 {
     private const USER = "user";
 
-    public function login(int $id, string $username): void
-    {
+    public function login(
+        int $id,
+        string $username,
+        bool $super = false,
+    ): void {
         session_regenerate_id(true);
-        $_SESSION[self::USER] = ["id" => $id, "username" => $username];
+        $_SESSION[self::USER] = [
+            "id" => $id,
+            "username" => $username,
+            "super" => $super,
+        ];
     }
 
     public function logout(): void
@@ -28,6 +35,11 @@ class SessionStore
     public function isLoggedIn(): bool
     {
         return $this->user() !== null;
+    }
+
+    public function isSuper(): bool
+    {
+        return (bool) ($this->user()["super"] ?? false);
     }
 
     public function key(): string

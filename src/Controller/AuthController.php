@@ -35,7 +35,8 @@ class AuthController
             $username === ""
                 ? false
                 : $this->db->fetchAssociative(
-                    "SELECT id, username, passwd FROM user WHERE username = ?",
+                    "SELECT id, username, passwd, super
+                     FROM user WHERE username = ?",
                     [$username],
                 );
 
@@ -50,7 +51,11 @@ class AuthController
 
         $request
             ->getAttribute("session")
-            ->login((int) $user["id"], $user["username"]);
+            ->login(
+                (int) $user["id"],
+                $user["username"],
+                (bool) $user["super"],
+            );
 
         return $this->redirectHome($request, $response);
     }

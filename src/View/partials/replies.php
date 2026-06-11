@@ -19,23 +19,28 @@
             </div>
             <p class="postContent"><em>[deleted]</em></p>
         <?php else: ?>
-            <?php $mine = $post["creator_key"] === $session->key(); ?>
+            <?php
+            $mine = $post["creator_key"] === $session->key();
+            $manage = $mine || $session->isSuper();
+            ?>
             <div class="replyHead">
                 <h4<?= $mine ? ' class="me"' : "" ?>><?= str_starts_with(
                     $post["creator_key"],
                     "s:",
                 )
-                    ? "<em>" . htmlspecialchars($post["username"]) . "</em>"
-                    : htmlspecialchars($post["username"]) ?></h4>
+    ? "<em>" . htmlspecialchars($post["username"]) . "</em>"
+    : htmlspecialchars($post["username"]) ?></h4>
                 <div
                     class="endorse"
                     data-url="<?= $basePath .
-                        "/post/" .
-                        (int) $post["id"] .
-                        "/endorse" ?>"
+                                        "/post/" .
+                                        (int) $post["id"] .
+                                        "/endorse" ?>"
                 >
                     <button hover-data-scramble data-vote="-1"
-                        <?= (int) $post["my_vote"] === -1 ? 'class="set"' : "" ?>
+                        <?= (int) $post["my_vote"] === -1
+                                            ? 'class="set"'
+                                            : "" ?>
                     >--</button>
                     <p><?= htmlspecialchars(asHex((int) $post["rating"])) ?></p>
                     <button hover-data-scramble data-vote="1"
@@ -46,26 +51,26 @@
             <p class="postContent"><?= htmlspecialchars($post["content"]) ?></p>
             <div class="postActions">
                 <button hover-data-scramble data-leech="reply">reply</button>
-                <?php if ($mine): ?>
+                <?php if ($manage): ?>
                     <button hover-data-scramble data-leech="edit">edit</button>
                     <button hover-data-scramble data-leech="del"
                         data-url="<?= $basePath .
-                            "/post/" .
-                            (int) $post["id"] .
-                            "/delete" ?>"
+                                            "/post/" .
+                                            (int) $post["id"] .
+                                            "/delete" ?>"
                     >del</button>
                 <?php endif; ?>
             </div>
             <?= $this->fetch("partials/leechBox.php", [
-                "postId" => (int) $post["id"],
-                "anchorId" => (int) $anchorId,
-            ]) ?>
+                                "postId" => (int) $post["id"],
+                                "anchorId" => (int) $anchorId,
+                            ]) ?>
         <?php endif; ?>
         <?= $this->fetch("partials/replies.php", [
-            "session" => $session,
-            "replies" => $replies,
-            "parentId" => (int) $post["id"],
-            "anchorId" => (int) $anchorId,
-        ]) ?>
+                            "session" => $session,
+                            "replies" => $replies,
+                            "parentId" => (int) $post["id"],
+                            "anchorId" => (int) $anchorId,
+                        ]) ?>
     </div>
 <?php endforeach; ?>

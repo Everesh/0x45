@@ -7,6 +7,7 @@ namespace Everesh\ZeroX45\Controller;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 use Everesh\ZeroX45\Model\LogAction;
+use Everesh\ZeroX45\Model\SessionStore;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Routing\RouteContext;
@@ -222,7 +223,7 @@ class PostController
 
         $post = $this->fetchOwned(
             (int) $args["id"],
-            $request->getAttribute("session")->key(),
+            $request->getAttribute("session"),
         );
         if (is_int($post)) {
             return $this->view
@@ -262,7 +263,7 @@ class PostController
     ): Response {
         $post = $this->fetchOwned(
             (int) $args["id"],
-            $request->getAttribute("session")->key(),
+            $request->getAttribute("session"),
         );
         if (is_int($post)) {
             return $response->withStatus($post);
@@ -294,10 +295,11 @@ class PostController
     }
 
     /**
-     * @return array|int the post row when owned by the caller,
-     *                   404 when missing or deleted, 403 when not owned
+     * @return array|int the post row when owned by the caller (supers
+     *                   own everything), 404 when missing or deleted,
+     *                   403 when not owned
      */
-    private function fetchOwned(int $id, string $key): array|int
+    private function fetchOwned(int $id, SessionStore $session): array|int
     {
         $post = $this->db->fetchAssociative("SELECT * FROM post WHERE id = ?", [
             $id,
@@ -307,7 +309,9 @@ class PostController
             return 404;
         }
 
-        return $post["creator_key"] === $key ? $post : 403;
+        return $session->isSuper() || $post["creator_key"] === $session->key()
+            ? $post
+            : 403;
     }
 
     private function redirectToThread(

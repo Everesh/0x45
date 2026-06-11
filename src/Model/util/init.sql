@@ -14,6 +14,7 @@ CREATE TABLE `user` (
     `id`       BIGINT NOT NULL AUTO_INCREMENT,
     `username` VARCHAR(255) NOT NULL,
     `passwd`   VARCHAR(255) NOT NULL,
+    `super`    TINYINT(1) NOT NULL DEFAULT 0,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_user_username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

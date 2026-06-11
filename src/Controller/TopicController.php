@@ -148,9 +148,13 @@ class TopicController
 
     private function ownedBy(array $topic, $session): bool
     {
-        return $session->isLoggedIn() &&
-            $topic["creator_id"] !== null &&
-            (int) $topic["creator_id"] === (int) $session->user()["id"];
+        if (!$session->isLoggedIn()) {
+            return false;
+        }
+
+        return $session->isSuper() ||
+            ($topic["creator_id"] !== null &&
+                (int) $topic["creator_id"] === (int) $session->user()["id"]);
     }
 
     private function allTopics(): array
