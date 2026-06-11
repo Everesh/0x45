@@ -1,7 +1,7 @@
 # 0x45
 → E : a micro forum 
 
-![preview img](https://github.com/user-attachments/assets/e7f39aa7-190c-4072-b55f-4d85d61a600e)
+![preview img](https://github.com/user-attachments/assets/1186745c-fc21-4147-9b7a-15dff42042f9)
 
 ## Installation
 ### Prerequisites
@@ -13,9 +13,10 @@ git clone https://github.com/Everesh/0x45.git && cd ./0x45
 composer install
 cp ./.env.example ./.env
 ```
-- run the `./src/Model/init.sql` against your mariadb/mysql service
+- run the `./src/Model/utils/init.sql` against your mariadb/mysql service
+  - if you want to seed, also run `php ./src/Model/utils/seed.php`
 - setup your .env
 - serve via apache || php -S || w/e
 
 ## DB model
-![model img](https://github.com/user-attachments/assets/db4454a7-9554-407c-8301-fdbba1fffd72)
+![model img](https://github.com/user-attachments/assets/7de252e5-c4fe-4c7d-af5f-a8ea36cfec30)
