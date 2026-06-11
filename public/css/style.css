@@ -93,6 +93,8 @@ a {
 #rightDock > main::after,
 #rightDock > aside::after,
 #centerLayout::after,
+.thread-anchor::after,
+.thread-leeches::after,
 header::after {
     position: absolute;
     top: 0.3em;
@@ -155,6 +157,45 @@ header > :first-child {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+/* --- thread --- */
+
+/* cancels the #rightDock > * padding so the anchor delimiter
+   can run the full width of the panel */
+.thread {
+    margin: -1.5em -3em;
+}
+
+.thread .postHead {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 2rem;
+}
+
+.thread .postContent {
+    margin-top: 0.5em;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+}
+
+.thread-anchor {
+    border-bottom: 1px solid var(--border-color);
+    padding: 1.5em 3em;
+    position: relative;
+}
+
+.thread-leeches {
+    padding: 1.5em 3em;
+    position: relative;
+}
+
+.reply {
+    border-left: 1px solid var(--border-color);
+    padding: 0.25em 0 0.25em 1em;
+    margin-top: 0.75em;
 }
 
 /* --- CenterLayout --- */

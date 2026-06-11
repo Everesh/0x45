@@ -26,98 +26,205 @@ $conn->insert("user", [
     "username" => "alice",
     "passwd" => password_hash("alice", PASSWORD_DEFAULT),
 ]);
-$alice = $conn->lastInsertId();
+$aliceId = (int) $conn->lastInsertId();
+$alice = "u:" . $aliceId;
 
 $conn->insert("user", [
     "username" => "bob",
     "passwd" => password_hash("bob", PASSWORD_DEFAULT),
 ]);
-$bob = $conn->lastInsertId();
+$bobId = (int) $conn->lastInsertId();
+$bob = "u:" . $bobId;
+
+$anon1 = "s:anonsession1";
+$anon2 = "s:anonsession2";
 
 // topics
-$conn->insert("topic", ["creator_id" => $alice, "name" => "general"]);
-$general = $conn->lastInsertId();
+$conn->insert("topic", ["creator_id" => $aliceId, "name" => "general"]);
+$general = (int) $conn->lastInsertId();
 
-$conn->insert("topic", ["creator_id" => $bob, "name" => "tech"]);
-$tech = $conn->lastInsertId();
+$conn->insert("topic", ["creator_id" => $bobId, "name" => "tech"]);
+$tech = (int) $conn->lastInsertId();
 
 // affinities
-$conn->insert("affinity", ["id_user" => $alice, "id_topic" => $tech]);
-$conn->insert("affinity", ["id_user" => $bob, "id_topic" => $general]);
+$conn->insert("affinity", ["id_user" => $aliceId, "id_topic" => $tech]);
+$conn->insert("affinity", ["id_user" => $bobId, "id_topic" => $general]);
 
-// thread 1 — alice creates a thread in general
-$conn->transactional(function ($conn) use ($alice, $general, &$thread1Post) {
+/**
+ * inserts a post + its created log, returns the post id
+ */
+$post = function (
+    ?int $parentId,
+    string $title,
+    string $content,
+    string $creatorKey,
+) use ($conn): int {
     $conn->insert("post", [
-        "parent_id" => null,
-        "title" => "Hello everyone",
-        "content" => "First post in general, happy to be here.",
-        "creator_key" => "u:" . $alice,
+        "parent_id" => $parentId,
+        "title" => $title,
+        "content" => $content,
+        "creator_key" => $creatorKey,
     ]);
-    $thread1Post = $conn->lastInsertId();
-
-    $conn->insert("thread", [
-        "topic_id" => $general,
-        "anchor_id" => $thread1Post,
-    ]);
+    $id = (int) $conn->lastInsertId();
 
     $conn->insert("log", [
         "action" => LogAction::PostCreated->value,
-        "post_id" => $thread1Post,
+        "post_id" => $id,
     ]);
-});
 
-// thread 2 — anon creates a thread in tech
-$conn->transactional(function ($conn) use ($tech, &$thread2Post) {
-    $conn->insert("post", [
-        "parent_id" => null,
-        "title" => "Anyone using DBAL?",
-        "content" =>
-            "Just discovered doctrine/dbal, pretty nice for raw SQL lovers.",
-        "creator_key" => "s:anonsession1",
-    ]);
-    $thread2Post = $conn->lastInsertId();
+    return $id;
+};
 
-    $conn->insert("thread", ["topic_id" => $tech, "anchor_id" => $thread2Post]);
+/**
+ * inserts an anchor post + its thread atomically, returns the anchor id
+ */
+$thread = function (
+    int $topicId,
+    string $title,
+    string $content,
+    string $creatorKey,
+) use ($conn, $post): int {
+    return $conn->transactional(function () use (
+        $conn,
+        $post,
+        $topicId,
+        $title,
+        $content,
+        $creatorKey,
+    ): int {
+        $anchorId = $post(null, $title, $content, $creatorKey);
+        $conn->insert("thread", [
+            "topic_id" => $topicId,
+            "anchor_id" => $anchorId,
+        ]);
 
+        return $anchorId;
+    });
+};
+
+// --- general ---
+
+// 1. deep thread — 7 leeches, one chain nested 4 deep
+$hello = $thread(
+    $general,
+    "Hello everyone",
+    "First post in general, happy to be here.",
+    $alice,
+);
+$r1 = $post($hello, "Re: Hello everyone", "Welcome! Great to have you.", $bob);
+$r11 = $post($r1, "Re: Re: Hello everyone", "Seconded, welcome!", $anon1);
+$r111 = $post($r11, "Who are you?", "Wait, do we know each other?", $alice);
+$post($r111, "Re: Who are you?", "Everyone knows everyone here.", $bob);
+$post($hello, "obligatory first", "first.", $anon2);
+$r3 = $post($hello, "Welcome wagon", "Make yourself at home.", $alice);
+$post($r3, "Re: Welcome wagon", "Cozy place indeed.", $anon1);
+
+// 2. flat thread — 5 leeches, none nested
+$reading = $thread(
+    $general,
+    "What are you reading?",
+    "Drop your current book, no judgement.",
+    $bob,
+);
+$post($reading, "Re: reading", "The Pragmatic Programmer, again.", $alice);
+$post($reading, "Re: reading", "Dune, finally.", $anon1);
+$post($reading, "Re: reading", "PHP release notes, cover to cover.", $anon2);
+$post($reading, "Re: reading", "Mostly error logs lately.", $bob);
+$post($reading, "Re: reading", "A weird CSS specification.", $anon1);
+
+// 3. no leeches
+$rules = $thread(
+    $general,
+    "Rules of the board",
+    "Be kind. Stay on topic. Endorse generously.",
+    $alice,
+);
+
+// 4. single leech
+$plans = $thread($general, "Weekend plans", "Anything fun happening?", $anon2);
+$post($plans, "Re: Weekend plans", "Refactoring, obviously.", $bob);
+
+// 5. small nested thread
+$pets = $thread($general, "Pet thread", "Post your pets.", $bob);
+$cat = $post($pets, "My cat", "She sits on the keyboard all day.", $alice);
+$post($cat, "Re: My cat", "Classic pair programming.", $anon1);
+
+// --- tech ---
+
+// 6. small nested thread
+$dbal = $thread(
+    $tech,
+    "Anyone using DBAL?",
+    "Just discovered doctrine/dbal, pretty nice for raw SQL lovers.",
+    $anon1,
+);
+$qb = $post($dbal, "QueryBuilder?", "Do you use the query builder too?", $bob);
+$post($qb, "Re: QueryBuilder?", "Until I need a CTE, then raw SQL.", $anon1);
+
+// 7. nested 3 deep
+$fonts = $thread(
+    $tech,
+    "Monospace fonts",
+    "What does everyone code in?",
+    $alice,
+);
+$jb = $post($fonts, "JetBrains Mono", "The ligatures got me.", $bob);
+$lig = $post($jb, "Re: JetBrains Mono", "Ligatures are a crime.", $anon2);
+$post($lig, "Re: Re: JetBrains Mono", "Strong words for != vs ≠.", $bob);
+
+// 8. single leech
+$enums = $thread(
+    $tech,
+    "PHP 8.1 enums",
+    "Backed enums finally killed my class constants.",
+    $bob,
+);
+$post($enums, "Re: PHP 8.1 enums", "LogAction::PostSeen approves.", $alice);
+
+// 9. no leeches
+$hosting = $thread(
+    $tech,
+    "Self-hosting tips",
+    "Moving off the cloud, what should I know?",
+    $anon2,
+);
+
+// 10. no leeches
+$thread($tech, "Tabs or spaces", "Settling this once and for all.", $anon1);
+
+// seen marks
+foreach ([$hello, $dbal, $reading, $fonts] as $seen) {
     $conn->insert("log", [
-        "action" => LogAction::PostCreated->value,
-        "post_id" => $thread2Post,
+        "action" => LogAction::PostSeen->value,
+        "post_id" => $seen,
     ]);
-});
-
-// bob replies to thread 1, marking it as seen
-$conn->insert("post", [
-    "parent_id" => $thread1Post,
-    "title" => "Re: Hello everyone",
-    "content" => "Welcome! Great to have you.",
-    "creator_key" => "u:" . $bob,
-]);
-$reply = $conn->lastInsertId();
-
-$conn->insert("log", [
-    "action" => LogAction::PostCreated->value,
-    "post_id" => $reply,
-]);
-$conn->insert("log", [
-    "action" => LogAction::PostSeen->value,
-    "post_id" => $thread1Post,
-]);
+}
 
 // endorsements
-$conn->insert("endorse", [
-    "id_post" => $thread1Post,
-    "voter_key" => "u:" . $bob,
-    "vote" => 1,
-]);
-$conn->insert("endorse", [
-    "id_post" => $thread1Post,
-    "voter_key" => "s:anonsession2",
-    "vote" => 1,
-]);
-$conn->insert("endorse", [
-    "id_post" => $thread2Post,
-    "voter_key" => "u:" . $alice,
-    "vote" => -1,
-]);
+foreach (
+    [
+        [$hello, $bob, 1],
+        [$hello, $anon2, 1],
+        [$r1, $alice, 1],
+        [$reading, $anon1, 1],
+        [$reading, $anon2, 1],
+        [$reading, $alice, 1],
+        [$rules, $bob, 1],
+        [$plans, $alice, -1],
+        [$dbal, $alice, -1],
+        [$qb, $anon1, 1],
+        [$fonts, $bob, 1],
+        [$jb, $alice, -1],
+        [$enums, $alice, 1],
+        [$hosting, $bob, -1],
+    ]
+    as [$postId, $voterKey, $vote]
+) {
+    $conn->insert("endorse", [
+        "id_post" => $postId,
+        "voter_key" => $voterKey,
+        "vote" => $vote,
+    ]);
+}
 
 echo "Seeded.\n";
