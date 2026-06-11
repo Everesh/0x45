@@ -257,3 +257,34 @@ header > :first-child {
     width: min(100%, 1040px);
     padding-top: min(10vh, 4rem);
 }
+
+/* --- auth --- */
+
+.authForm {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+    width: min(100%, 24rem);
+    margin: 0 auto;
+}
+
+.authForm input {
+    font-family: monospace;
+    color: var(--text);
+    background: transparent;
+    border: 1px solid var(--border-color);
+    padding: 0.5em;
+}
+
+.authForm input:focus {
+    outline: none;
+    border-color: var(--highlight);
+}
+
+.authForm .formError {
+    color: var(--highlight);
+}
+
+.authForm button {
+    align-self: flex-start;
+}
