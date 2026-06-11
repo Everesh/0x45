@@ -1,3 +1,10 @@
+<?php
+/**
+ * @var     $this   php renderer reference
+ * @var     $posts  array<post>
+ */
+?>
+
 <?= $this->fetch("decorators/head.php", ["title" => "Home"]) ?>
 <?= $this->fetch("partials/header.php") ?>
 <?= $this->fetch("layouts/rightDock.php", [

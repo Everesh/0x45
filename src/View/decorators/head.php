@@ -1,3 +1,10 @@
+<?php
+/**
+ * @var     $basePath   string defined in public index.php
+ * @var     $title      string set as title
+ */
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>

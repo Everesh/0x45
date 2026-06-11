@@ -16,6 +16,9 @@ class PostController
         private readonly Connection $db,
     ) {}
 
+    /**
+     * @param $args array<URL PARAM>
+     */
     public function show(
         Request $request,
         Response $response,
