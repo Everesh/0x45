@@ -11,10 +11,9 @@
 <?php foreach ($replies[$parentId] ?? [] as $post): ?>
     <div class="reply">
         <div class="postHead">
-            <h4><?= htmlspecialchars($post["title"]) ?></h4>
+            <p class="postContent"><?= htmlspecialchars($post["content"]) ?></p>
             <p><?= htmlspecialchars(asHex((int) $post["rating"])) ?></p>
         </div>
-        <p class="postContent"><?= htmlspecialchars($post["content"]) ?></p>
         <?= $this->fetch("partials/replies.php", [
             "replies" => $replies,
             "parentId" => (int) $post["id"],

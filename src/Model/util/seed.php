@@ -14,8 +14,7 @@ $conn = (new Database())->get();
 // reset
 $conn->executeStatement("SET FOREIGN_KEY_CHECKS = 0");
 foreach (
-    ["affinity", "endorse", "log", "thread", "post", "topic", "user"]
-    as $table
+    ["affinity", "endorse", "log", "thread", "post", "topic", "user"] as $table
 ) {
     $conn->executeStatement("TRUNCATE TABLE `$table`");
 }
@@ -52,12 +51,14 @@ $conn->insert("affinity", ["id_user" => $bobId, "id_topic" => $general]);
 
 /**
  * inserts a post + its created log, returns the post id
+ *
+ * title stays null for leeches, only anchors set one
  */
 $post = function (
     ?int $parentId,
-    string $title,
     string $content,
     string $creatorKey,
+    ?string $title = null,
 ) use ($conn): int {
     $conn->insert("post", [
         "parent_id" => $parentId,
@@ -92,7 +93,7 @@ $thread = function (
         $content,
         $creatorKey,
     ): int {
-        $anchorId = $post(null, $title, $content, $creatorKey);
+        $anchorId = $post(null, $content, $creatorKey, $title);
         $conn->insert("thread", [
             "topic_id" => $topicId,
             "anchor_id" => $anchorId,
@@ -111,13 +112,13 @@ $hello = $thread(
     "First post in general, happy to be here.",
     $alice,
 );
-$r1 = $post($hello, "Re: Hello everyone", "Welcome! Great to have you.", $bob);
-$r11 = $post($r1, "Re: Re: Hello everyone", "Seconded, welcome!", $anon1);
-$r111 = $post($r11, "Who are you?", "Wait, do we know each other?", $alice);
-$post($r111, "Re: Who are you?", "Everyone knows everyone here.", $bob);
-$post($hello, "obligatory first", "first.", $anon2);
-$r3 = $post($hello, "Welcome wagon", "Make yourself at home.", $alice);
-$post($r3, "Re: Welcome wagon", "Cozy place indeed.", $anon1);
+$r1 = $post($hello, "Welcome! Great to have you.", $bob);
+$r11 = $post($r1, "Seconded, welcome!", $anon1);
+$r111 = $post($r11, "Wait, do we know each other?", $alice);
+$post($r111, "Everyone knows everyone here.", $bob);
+$post($hello, "first.", $anon2);
+$r3 = $post($hello, "Make yourself at home.", $alice);
+$post($r3, "Cozy place indeed.", $anon1);
 
 // 2. flat thread — 5 leeches, none nested
 $reading = $thread(
@@ -126,11 +127,11 @@ $reading = $thread(
     "Drop your current book, no judgement.",
     $bob,
 );
-$post($reading, "Re: reading", "The Pragmatic Programmer, again.", $alice);
-$post($reading, "Re: reading", "Dune, finally.", $anon1);
-$post($reading, "Re: reading", "PHP release notes, cover to cover.", $anon2);
-$post($reading, "Re: reading", "Mostly error logs lately.", $bob);
-$post($reading, "Re: reading", "A weird CSS specification.", $anon1);
+$post($reading, "The Pragmatic Programmer, again.", $alice);
+$post($reading, "Dune, finally.", $anon1);
+$post($reading, "PHP release notes, cover to cover.", $anon2);
+$post($reading, "Mostly error logs lately.", $bob);
+$post($reading, "A weird CSS specification.", $anon1);
 
 // 3. no leeches
 $rules = $thread(
@@ -142,12 +143,12 @@ $rules = $thread(
 
 // 4. single leech
 $plans = $thread($general, "Weekend plans", "Anything fun happening?", $anon2);
-$post($plans, "Re: Weekend plans", "Refactoring, obviously.", $bob);
+$post($plans, "Refactoring, obviously.", $bob);
 
 // 5. small nested thread
 $pets = $thread($general, "Pet thread", "Post your pets.", $bob);
-$cat = $post($pets, "My cat", "She sits on the keyboard all day.", $alice);
-$post($cat, "Re: My cat", "Classic pair programming.", $anon1);
+$cat = $post($pets, "My cat sits on the keyboard all day.", $alice);
+$post($cat, "Classic pair programming.", $anon1);
 
 // --- tech ---
 
@@ -158,8 +159,8 @@ $dbal = $thread(
     "Just discovered doctrine/dbal, pretty nice for raw SQL lovers.",
     $anon1,
 );
-$qb = $post($dbal, "QueryBuilder?", "Do you use the query builder too?", $bob);
-$post($qb, "Re: QueryBuilder?", "Until I need a CTE, then raw SQL.", $anon1);
+$qb = $post($dbal, "Do you use the query builder too?", $bob);
+$post($qb, "Until I need a CTE, then raw SQL.", $anon1);
 
 // 7. nested 3 deep
 $fonts = $thread(
@@ -168,9 +169,9 @@ $fonts = $thread(
     "What does everyone code in?",
     $alice,
 );
-$jb = $post($fonts, "JetBrains Mono", "The ligatures got me.", $bob);
-$lig = $post($jb, "Re: JetBrains Mono", "Ligatures are a crime.", $anon2);
-$post($lig, "Re: Re: JetBrains Mono", "Strong words for != vs ≠.", $bob);
+$jb = $post($fonts, "JetBrains Mono, the ligatures got me.", $bob);
+$lig = $post($jb, "Ligatures are a crime.", $anon2);
+$post($lig, "Strong words for != vs ≠.", $bob);
 
 // 8. single leech
 $enums = $thread(
@@ -179,7 +180,7 @@ $enums = $thread(
     "Backed enums finally killed my class constants.",
     $bob,
 );
-$post($enums, "Re: PHP 8.1 enums", "LogAction::PostSeen approves.", $alice);
+$post($enums, "LogAction::PostSeen approves.", $alice);
 
 // 9. no leeches
 $hosting = $thread(
@@ -217,8 +218,7 @@ foreach (
         [$jb, $alice, -1],
         [$enums, $alice, 1],
         [$hosting, $bob, -1],
-    ]
-    as [$postId, $voterKey, $vote]
+    ] as [$postId, $voterKey, $vote]
 ) {
     $conn->insert("endorse", [
         "id_post" => $postId,

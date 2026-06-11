@@ -30,7 +30,7 @@ CREATE TABLE `topic` (
 CREATE TABLE `post` (
     `id`          BIGINT NOT NULL AUTO_INCREMENT,
     `parent_id`   BIGINT DEFAULT NULL,
-    `title`       VARCHAR(255) NOT NULL,
+    `title`       VARCHAR(255) DEFAULT NULL,
     `content`     TEXT NOT NULL,
     `creator_key` VARCHAR(255) NOT NULL,
     PRIMARY KEY (`id`),
