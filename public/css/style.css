@@ -126,8 +126,12 @@ header {
     border-bottom: 1px solid var(--border-color);
 }
 
-header > :first-child {
+header > :nth-child(2) {
     margin-right: auto;
+}
+
+header *:not(h2) {
+    font-size: 1rem;
 }
 
 /* --- list --- */
@@ -165,6 +169,26 @@ header > :first-child {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.list > button {
+    align-self: flex-start;
+}
+
+/* hrefless pseudo-item that opens the new-topic box */
+.listItem[data-topic-new] {
+    cursor: pointer;
+}
+
+.listItem[data-topic-new]:hover {
+    color: var(--highlight);
+}
+
+/* full bleed: cancel the pane padding, same trick as the
+   thread-anchor variant */
+.list > .leechBox.open {
+    margin-left: -3em;
+    margin-right: -3em;
 }
 
 /* --- thread --- */
@@ -205,7 +229,8 @@ header > :first-child {
     padding-left: 1em;
 }
 
-button[data-leech] {
+button[data-leech],
+button[data-topic-del] {
     color: color-mix(in srgb, var(--text), transparent 40%);
 }
 
@@ -339,7 +364,8 @@ button[data-leech] {
     padding: 1.5em 1em 1em;
 }
 
-.leechBox textarea {
+.leechBox textarea,
+.leechBox input {
     font-family: monospace;
     color: var(--text);
     background: transparent;
@@ -348,7 +374,8 @@ button[data-leech] {
     resize: none;
 }
 
-.leechBox textarea:focus {
+.leechBox textarea:focus,
+.leechBox input:focus {
     outline: none;
 }
 
@@ -381,7 +408,7 @@ button[data-leech] {
     border-color: var(--highlight);
 }
 
-.authForm .formError {
+.formError {
     color: var(--highlight);
 }
 
