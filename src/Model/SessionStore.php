@@ -8,11 +8,8 @@ class SessionStore
 {
     private const USER = "user";
 
-    public function login(
-        int $id,
-        string $username,
-        bool $super = false,
-    ): void {
+    public function login(int $id, string $username, bool $super = false): void
+    {
         session_regenerate_id(true);
         $_SESSION[self::USER] = [
             "id" => $id,

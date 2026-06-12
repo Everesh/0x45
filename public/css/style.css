@@ -235,6 +235,13 @@ header *:not(h2) {
     align-items: center;
 }
 
+.thread-anchor > .postActions > h4 {
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .reply > .postActions {
     padding-left: 1em;
 }
