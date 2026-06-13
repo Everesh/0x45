@@ -17,6 +17,9 @@ use Slim\Views\PhpRenderer;
 
 class TopicController
 {
+    // matches the post.title VARCHAR(255) column
+    private const TITLE_MAX = 255;
+
     public function __construct(
         private readonly PhpRenderer $view,
         private readonly Connection $db,
@@ -99,7 +102,15 @@ class TopicController
         $content = trim((string) ($body["content"] ?? ""));
         $basePath = RouteContext::fromRequest($request)->getBasePath();
 
-        if ($title === "" || $content === "") {
+        $error = match (true) {
+            $title === "" || $content === ""
+                => "title and body are both required",
+            mb_strlen($title) > self::TITLE_MAX
+                => "title too long (max " . self::TITLE_MAX . " chars)",
+            default => null,
+        };
+
+        if ($error !== null) {
             $topicId = (int) $topic["id"];
             $store = new ThreadStore($this->db);
             $pages = max(
@@ -114,7 +125,7 @@ class TopicController
                     "topicDel" => $this->ownedBy($topic, $session)
                         ? $basePath . "/topic/" . $topic["name"] . "/delete"
                         : null,
-                    "threadError" => "title and body are both required",
+                    "threadError" => $error,
                     "following" => $this->following($topicId, $session),
                     "logs" => (new LogStore($this->db))->forTopic($topicId),
                     "page" => 1,
