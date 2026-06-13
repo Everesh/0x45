@@ -47,6 +47,15 @@ button.set {
     color: var(--highlight);
 }
 
+.newThreadRow > button.set {
+    font-weight: inherit;
+    color: inherit;
+}
+
+.newThreadRow > button.set:hover {
+    color: var(--highlight);
+}
+
 a {
     text-decoration: none;
     color: inherit;
@@ -187,6 +196,28 @@ header *:not(h2) {
 
 .list > button {
     align-self: flex-start;
+}
+
+.listEmpty {
+    color: color-mix(in srgb, var(--text), transparent 50%);
+}
+
+/* thread:new box + the follow toggle, side by side sharing the dotted look */
+.newThreadRow {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5em;
+    align-items: stretch;
+}
+
+.newThreadRow > .listItem {
+    flex: 1;
+}
+
+.newThreadRow > button[data-affinity] {
+    border: 1px dotted var(--border-color);
+    padding: 0 1em;
+    white-space: nowrap;
 }
 
 /* hrefless pseudo-items that open the new-topic / new-thread box */

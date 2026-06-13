@@ -6,6 +6,7 @@ namespace Everesh\ZeroX45\Controller;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Everesh\ZeroX45\Model\AffinityStore;
 use Everesh\ZeroX45\Model\LogAction;
 use Everesh\ZeroX45\Model\LogStore;
 use Everesh\ZeroX45\Model\ThreadStore;
@@ -25,6 +26,9 @@ class TopicController
     {
         return $this->view->render($response, "topics.php", [
             "topics" => $this->allTopics(),
+            "feedThreads" => $this->feedThreadCount(
+                $request->getAttribute("session"),
+            ),
             "logs" => (new LogStore($this->db))->recent(),
         ]);
     }
@@ -45,6 +49,7 @@ class TopicController
 
         $basePath = RouteContext::fromRequest($request)->getBasePath();
         $topicId = (int) $topic["id"];
+        $session = $request->getAttribute("session");
 
         $page = max(1, (int) ($request->getQueryParams()["page"] ?? 1));
         $store = new ThreadStore($this->db);
@@ -57,12 +62,10 @@ class TopicController
         return $this->view->render($response, "home.php", [
             "posts" => $store->page($topicId, $page),
             "topic" => $topic["name"],
-            "topicDel" => $this->ownedBy(
-                $topic,
-                $request->getAttribute("session"),
-            )
+            "topicDel" => $this->ownedBy($topic, $session)
                 ? $basePath . "/topic/" . $topic["name"] . "/delete"
                 : null,
+            "following" => $this->following($topicId, $session),
             "logs" => (new LogStore($this->db))->forTopic($topicId),
             "page" => $page,
             "pages" => $pages,
@@ -112,6 +115,7 @@ class TopicController
                         ? $basePath . "/topic/" . $topic["name"] . "/delete"
                         : null,
                     "threadError" => "title and body are both required",
+                    "following" => $this->following($topicId, $session),
                     "logs" => (new LogStore($this->db))->forTopic($topicId),
                     "page" => 1,
                     "pages" => $pages,
@@ -150,6 +154,39 @@ class TopicController
         return $response
             ->withHeader("Location", $basePath . "/post/" . $anchorId)
             ->withStatus(302);
+    }
+
+    /**
+     * follow/unfollow toggle, called over fetch, answers {"following": bool}
+     *
+     * @param $args array<URL PARAM>
+     */
+    public function affinity(
+        Request $request,
+        Response $response,
+        array $args,
+    ): Response {
+        $session = $request->getAttribute("session");
+        if (!$session->isLoggedIn()) {
+            return $response->withStatus(403);
+        }
+
+        $topic = $this->db->fetchAssociative(
+            "SELECT id FROM topic WHERE name = ?",
+            [$args["name"]],
+        );
+        if (!$topic) {
+            return $response->withStatus(404);
+        }
+
+        $following = (new AffinityStore($this->db))->toggle(
+            (int) $session->user()["id"],
+            (int) $topic["id"],
+        );
+
+        $response->getBody()->write(json_encode(["following" => $following]));
+
+        return $response->withHeader("Content-Type", "application/json");
     }
 
     public function delete(
@@ -204,6 +241,7 @@ class TopicController
                     "topics" => $this->allTopics(),
                     "error" =>
                         "1-32 chars, lowercase letters, digits, - and _ only",
+                    "feedThreads" => $this->feedThreadCount($session),
                     "logs" => (new LogStore($this->db))->recent(),
                 ])
                 ->withStatus(400);
@@ -219,6 +257,7 @@ class TopicController
                 ->render($response, "topics.php", [
                     "topics" => $this->allTopics(),
                     "error" => "topic already exists",
+                    "feedThreads" => $this->feedThreadCount($session),
                     "logs" => (new LogStore($this->db))->recent(),
                 ])
                 ->withStatus(409);
@@ -229,6 +268,31 @@ class TopicController
         return $response
             ->withHeader("Location", $basePath . "/topic/" . $name)
             ->withStatus(302);
+    }
+
+    /** thread count in the caller's feed for the index entry, null when anon */
+    private function feedThreadCount($session): ?int
+    {
+        if (!$session->isLoggedIn()) {
+            return null;
+        }
+
+        return (new ThreadStore($this->db))->countForUser(
+            (int) $session->user()["id"],
+        );
+    }
+
+    /** follow state for the button, null when anon (button hidden) */
+    private function following(int $topicId, $session): ?bool
+    {
+        if (!$session->isLoggedIn()) {
+            return null;
+        }
+
+        return (new AffinityStore($this->db))->has(
+            (int) $session->user()["id"],
+            $topicId,
+        );
     }
 
     private function ownedBy(array $topic, $session): bool

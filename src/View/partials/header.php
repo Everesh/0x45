@@ -2,8 +2,21 @@
 /**
  * @var     $basePath   string defined in public index.php
  * @var     $session    SessionStore renderer attribute set in public index.php
- * @var     $topic      ?string current topic name, "all" when unset
+ * @var     $topic      ?string current topic name, "all"/"feed" when unset
+ * @var     $feed       ?bool whether this is the personalized feed view
  */
+$onFeed = $feed ?? false;
+
+if (isset($topic) && $topic !== null) {
+    $crumbWord = $topic;
+    $crumbHref = $basePath . "/topic/" . htmlspecialchars($topic);
+} elseif ($onFeed) {
+    $crumbWord = "feed";
+    $crumbHref = $basePath . "/feed";
+} else {
+    $crumbWord = "all";
+    $crumbHref = $basePath . "/";
+}
 ?>
 
 <header data-after="header">
@@ -11,10 +24,8 @@
     <div class="topicCrumb">
         <a href="<?= $basePath ?>/topics"><p hover-data-scramble>topic</p></a>
         <p>:</p>
-        <a href="<?= isset($topic) && $topic !== null
-            ? $basePath . "/topic/" . htmlspecialchars($topic)
-            : $basePath . "/" ?>">
-            <p hover-data-scramble><?= htmlspecialchars($topic ?? "all") ?></p>
+        <a href="<?= $crumbHref ?>">
+            <p hover-data-scramble><?= htmlspecialchars($crumbWord) ?></p>
         </a>
     </div>
     <?php if ($session->isLoggedIn()): ?>

@@ -35,6 +35,7 @@ $dev = ($_ENV["APP_ENV"] ?? "prod") === "dev";
 $app->addErrorMiddleware($dev, true, $dev);
 
 $app->get("/", [new HomeController($view, $db), "index"]);
+$app->get("/feed", [new HomeController($view, $db), "feed"]);
 $app->get("/login", [new AuthController($view, $db), "loginPage"]);
 $app->post("/login", [new AuthController($view, $db), "login"]);
 $app->get("/register", [new AuthController($view, $db), "registerPage"]);
@@ -47,6 +48,10 @@ $app->post("/topic/{name}/delete", [new TopicController($view, $db), "delete"]);
 $app->post("/topic/{name}/thread", [
     new TopicController($view, $db),
     "createThread",
+]);
+$app->post("/topic/{name}/affinity", [
+    new TopicController($view, $db),
+    "affinity",
 ]);
 $app->get("/post/{id}", [new PostController($view, $db), "show"]);
 $app->post("/post/{id}/endorse", [new PostController($view, $db), "endorse"]);

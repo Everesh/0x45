@@ -1,9 +1,10 @@
 <?php
 /**
- * @var     $session    SessionStore renderer attribute set in public index.php
- * @var     $topics     array<topic + thread count>
- * @var     $error      ?string creation error to surface in the box
- * @var     $basePath   string defined in public index.php
+ * @var     $session     SessionStore renderer attribute set in public index.php
+ * @var     $topics      array<topic + thread count>
+ * @var     $error       ?string creation error to surface in the box
+ * @var     $feedThreads ?int thread count in the caller's feed, null when anon
+ * @var     $basePath    string defined in public index.php
  */
 if (!function_exists("asHex")) {
     function asHex(int $n): string
@@ -39,6 +40,12 @@ if (!function_exists("asHex")) {
                 </div>
             </form>
         </div>
+        <a class="listItem" href="<?= $basePath ?>/feed">
+            <div>
+                <h4>topic:feed</h4>
+            </div>
+            <p><?= htmlspecialchars(asHex((int) ($feedThreads ?? 0))) ?></p>
+        </a>
     <?php endif; ?>
     <?php foreach ($topics as $topic): ?>
         <a

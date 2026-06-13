@@ -1,9 +1,12 @@
 <?php
 /**
+ * @var     $this        php renderer reference
  * @var     $posts       array<post>
  * @var     $topic       ?string topic name, the new-thread box rides on it
  * @var     $topicDel    ?string delete url, set when the caller owns the topic
  * @var     $threadError ?string thread creation error to surface in the box
+ * @var     $following   ?bool follow state, null when anon (button hidden)
+ * @var     $feed        ?bool whether this is the personalized feed view
  * @var     $page        int current page, 1-based
  * @var     $pages       int total pages
  * @var     $pagePath    string route path the pager appends ?page=N to
@@ -18,12 +21,20 @@ function asHex(int $n): string
 
 <div class="list">
   <?php if (isset($topic) && $topic !== null): ?>
-      <a style="border: 1px dotted var(--border-color);" class="listItem" data-thread-new>
-          <div>
-              <h4 hover-data-scramble>thread:new</h4>
-          </div>
-          <p>++</p>
-      </a>
+      <div class="newThreadRow">
+          <a style="border: 1px dotted var(--border-color);" class="listItem" data-thread-new>
+              <div>
+                  <h4 hover-data-scramble>thread:new</h4>
+              </div>
+              <p>++</p>
+          </a>
+          <?php if (isset($following) && $following !== null): ?>
+              <button data-affinity
+                  data-url="<?= $basePath . "/topic/" . $topic . "/affinity" ?>"
+                  <?= $following ? 'class="set"' : "" ?>
+              ><?= $following ? "unfollow" : "follow" ?></button>
+          <?php endif; ?>
+      </div>
       <div
           class="leechBox<?= isset($threadError) && $threadError !== null
               ? " open"
@@ -54,6 +65,9 @@ function asHex(int $n): string
           data-url="<?= $topicDel ?>"
           data-confirm="this deletes the topic and ALL its threads, sure?"
       >del_topic</button>
+  <?php endif; ?>
+  <?php if (($feed ?? false) && !$posts): ?>
+      <p class="listEmpty">follow topics to fill your feed</p>
   <?php endif; ?>
   <?php foreach ($posts as $post): ?>
       <a class="listItem"  href="<?= $basePath . "/post/" . $post["id"] ?>">

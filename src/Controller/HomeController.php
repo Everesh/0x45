@@ -34,4 +34,32 @@ class HomeController
             "pagePath" => "/",
         ]);
     }
+
+    /** personalized stream: threads from the topics the caller follows */
+    public function feed(Request $request, Response $response): Response
+    {
+        $session = $request->getAttribute("session");
+        if (!$session->isLoggedIn()) {
+            return $this->view->render($response, "403.php")->withStatus(403);
+        }
+
+        $userId = (int) $session->user()["id"];
+        $page = max(1, (int) ($request->getQueryParams()["page"] ?? 1));
+        $store = new ThreadStore($this->db);
+        $pages = max(
+            1,
+            (int) ceil($store->countForUser($userId) / ThreadStore::PER_PAGE),
+        );
+        $page = min($page, $pages);
+
+        return $this->view->render($response, "home.php", [
+            "sessionId" => session_id(),
+            "posts" => $store->pageForUser($userId, $page),
+            "logs" => (new LogStore($this->db))->recent(),
+            "page" => $page,
+            "pages" => $pages,
+            "pagePath" => "/feed",
+            "feed" => true,
+        ]);
+    }
 }

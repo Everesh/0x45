@@ -52,4 +52,44 @@ class ThreadStore
 
         return (int) $qb->fetchOne();
     }
+
+    /** one page of the user's feed: threads in the topics they follow */
+    public function pageForUser(int $userId, int $page): array
+    {
+        return $this->db
+            ->createQueryBuilder()
+            ->select("p.*", "COALESCE(SUM(e.vote), 0) AS rating")
+            ->from("thread", "t")
+            ->innerJoin(
+                "t",
+                "affinity",
+                "af",
+                "af.id_topic = t.topic_id AND af.id_user = :uid",
+            )
+            ->leftJoin("t", "post", "p", "t.anchor_id = p.id")
+            ->leftJoin("p", "endorse", "e", "e.id_post = p.id")
+            ->setParameter("uid", $userId)
+            ->groupBy("p.id")
+            ->orderBy("p.id", "DESC")
+            ->setFirstResult(($page - 1) * self::PER_PAGE)
+            ->setMaxResults(self::PER_PAGE)
+            ->fetchAllAssociative();
+    }
+
+    /** total threads in the user's feed, for the pager math */
+    public function countForUser(int $userId): int
+    {
+        return (int) $this->db
+            ->createQueryBuilder()
+            ->select("COUNT(*)")
+            ->from("thread", "t")
+            ->innerJoin(
+                "t",
+                "affinity",
+                "af",
+                "af.id_topic = t.topic_id AND af.id_user = :uid",
+            )
+            ->setParameter("uid", $userId)
+            ->fetchOne();
+    }
 }
