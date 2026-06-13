@@ -209,6 +209,19 @@ header *:not(h2) {
 
 /* --- thread --- */
 
+.thread-anchor,
+.reply {
+    scroll-margin-top: 1em;
+}
+
+.reply:target {
+    border-left: 1px solid var(--highlight);
+}
+
+.reply:target > .replyHead {
+    border-bottom: 1px solid var(--highlight);
+}
+
 /* cancels the #rightDock > * padding so the anchor delimiter
    can run the full width of the panel */
 .thread {

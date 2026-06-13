@@ -17,7 +17,11 @@ if (!function_exists("asHex")) {
 } ?>
 
 <article class="thread">
-    <div class="thread-anchor" data-after="thread-anchor">
+    <div
+        class="thread-anchor"
+        id="post-<?= (int) $anchor["id"] ?>"
+        data-after="thread-anchor"
+    >
         <?php
         $mine = $anchor["creator_key"] === $session->key();
 $manage = $mine || $session->isSuper();

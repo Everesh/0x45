@@ -56,10 +56,14 @@ class LogStore
                     l.post_id,
                     l.timestamp,
                     tree.anchor_id,
-                    a.title AS thread_title
+                    (l.post_id = tree.anchor_id) AS is_anchor,
+                    a.title AS thread_title,
+                    p.content AS post_content,
+                    p.deleted AS post_deleted
                 FROM log l
                 JOIN tree ON tree.id = l.post_id
                 JOIN post a ON a.id = tree.anchor_id
+                JOIN post p ON p.id = l.post_id
                 ORDER BY l.id DESC
                 LIMIT
                 SQL

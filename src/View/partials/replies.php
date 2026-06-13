@@ -12,7 +12,11 @@
 ?>
 
 <?php foreach ($replies[$parentId] ?? [] as $post): ?>
-    <div class="reply" style="--depth: <?= (int) $post["depth"] ?>">
+    <div
+        class="reply"
+        id="post-<?= (int) $post["id"] ?>"
+        style="--depth: <?= (int) $post["depth"] ?>"
+    >
         <?php if ((int) $post["deleted"] === 1): ?>
             <div class="replyHead">
                 <h4><em>[deleted]</em></h4>
