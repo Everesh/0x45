@@ -7,6 +7,7 @@ namespace Everesh\ZeroX45\Controller;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Everesh\ZeroX45\Model\LogAction;
+use Everesh\ZeroX45\Model\LogStore;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Routing\RouteContext;
@@ -23,6 +24,7 @@ class TopicController
     {
         return $this->view->render($response, "topics.php", [
             "topics" => $this->allTopics(),
+            "logs" => (new LogStore($this->db))->recent(),
         ]);
     }
 
@@ -37,9 +39,7 @@ class TopicController
         );
 
         if (!$topic) {
-            return $this->view
-                ->render($response, "404.php")
-                ->withStatus(404);
+            return $this->view->render($response, "404.php")->withStatus(404);
         }
 
         $basePath = RouteContext::fromRequest($request)->getBasePath();
@@ -53,6 +53,7 @@ class TopicController
             )
                 ? $basePath . "/topic/" . $topic["name"] . "/delete"
                 : null,
+            "logs" => (new LogStore($this->db))->forTopic((int) $topic["id"]),
         ]);
     }
 
@@ -73,9 +74,7 @@ class TopicController
         );
 
         if (!$topic) {
-            return $this->view
-                ->render($response, "404.php")
-                ->withStatus(404);
+            return $this->view->render($response, "404.php")->withStatus(404);
         }
 
         $session = $request->getAttribute("session");
@@ -93,6 +92,9 @@ class TopicController
                         ? $basePath . "/topic/" . $topic["name"] . "/delete"
                         : null,
                     "threadError" => "title and body are both required",
+                    "logs" => (new LogStore($this->db))->forTopic(
+                        (int) $topic["id"],
+                    ),
                 ])
                 ->withStatus(400);
         }
@@ -169,9 +171,7 @@ class TopicController
         $session = $request->getAttribute("session");
 
         if (!$session->isLoggedIn()) {
-            return $this->view
-                ->render($response, "403.php")
-                ->withStatus(403);
+            return $this->view->render($response, "403.php")->withStatus(403);
         }
 
         $body = (array) $request->getParsedBody();
@@ -183,6 +183,7 @@ class TopicController
                     "topics" => $this->allTopics(),
                     "error" =>
                         "1-32 chars, lowercase letters, digits, - and _ only",
+                    "logs" => (new LogStore($this->db))->recent(),
                 ])
                 ->withStatus(400);
         }
@@ -197,6 +198,7 @@ class TopicController
                 ->render($response, "topics.php", [
                     "topics" => $this->allTopics(),
                     "error" => "topic already exists",
+                    "logs" => (new LogStore($this->db))->recent(),
                 ])
                 ->withStatus(409);
         }

@@ -4,6 +4,7 @@
  * @var     $session    SessionStore
  * @var     $anchor     post
  * @var     $replies    array<parent_id, array<post>>
+ * @var     $logs       array recent activity for the aside log
  */
 ?>
 
@@ -16,8 +17,8 @@
         "anchor" => $anchor,
         "replies" => $replies,
     ],
-    "aside" => "partials/tmp.php",
-    "asideArgs" => ["short" => true],
+    "aside" => "partials/log.php",
+    "asideArgs" => ["logs" => $logs ?? []],
     "asideAfter" => "log",
 ]) ?>
 <?= $this->fetch("decorators/tail.php") ?>

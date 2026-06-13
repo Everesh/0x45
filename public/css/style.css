@@ -91,8 +91,12 @@ a {
     flex-shrink: 0;
 }
 
-#rightDock > * {
+#rightDock > main {
     padding: 1.5em 3em;
+}
+
+#rightDock > aside {
+    padding: 1.5em 2em;
 }
 
 /* --- header --- */
@@ -307,6 +311,66 @@ button[data-topic-del] {
 .reply .postContent {
     margin-top: 0.25em;
     padding-left: 1em;
+}
+
+/* --- log --- */
+
+.log {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+}
+
+.log > li > a {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 0.75em;
+}
+
+.log > li > a:hover {
+    color: var(--highlight);
+}
+
+.log .logMethod {
+    flex-shrink: 0;
+    min-width: 4em;
+    color: color-mix(in srgb, var(--text), transparent 40%);
+}
+
+.log .logMethod[data-method="post_created"] {
+    color: #5b9bd5;
+}
+
+.log .logMethod[data-method="post_patched"] {
+    color: #d6b85a;
+}
+
+.log .logMethod[data-method="post_deleted"] {
+    color: #d6605a;
+}
+
+.log .logMethod[data-method="post_seen"] {
+    color: #6cb86c;
+}
+
+.log .logTitle {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.log time {
+    flex-shrink: 0;
+    font-size: 0.85rem;
+    color: color-mix(in srgb, var(--text), transparent 50%);
+}
+
+.logEmpty {
+    color: color-mix(in srgb, var(--text), transparent 50%);
 }
 
 /* --- CenterLayout --- */

@@ -5,6 +5,7 @@
  * @var     $topic       ?string topic name when reused as a topic page
  * @var     $topicDel    ?string delete url, set when the caller owns the topic
  * @var     $threadError ?string thread creation error to surface in the box
+ * @var     $logs        array recent activity for the aside log
  */
 ?>
 
@@ -21,8 +22,8 @@
         "threadError" => $threadError ?? null,
     ],
     "mainAfter" => "threads",
-    "aside" => "partials/tmp.php",
-    "asideArgs" => ["short" => true],
+    "aside" => "partials/log.php",
+    "asideArgs" => ["logs" => $logs ?? []],
     "asideAfter" => "log",
 ]) ?>
 <?= $this->fetch("decorators/tail.php") ?>

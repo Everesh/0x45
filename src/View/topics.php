@@ -3,6 +3,7 @@
  * @var     $this   php renderer reference
  * @var     $topics array<topic + thread count>
  * @var     $error  ?string creation error to surface in the box
+ * @var     $logs   array recent activity for the aside log
  */
 ?>
 
@@ -12,8 +13,8 @@
     "main" => "partials/topicList.php",
     "mainArgs" => ["topics" => $topics, "error" => $error ?? null],
     "mainAfter" => "topics",
-    "aside" => "partials/tmp.php",
-    "asideArgs" => ["short" => true],
+    "aside" => "partials/log.php",
+    "asideArgs" => ["logs" => $logs ?? []],
     "asideAfter" => "log",
 ]) ?>
 <?= $this->fetch("decorators/tail.php") ?>

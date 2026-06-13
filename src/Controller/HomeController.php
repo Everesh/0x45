@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Everesh\ZeroX45\Controller;
 
 use Doctrine\DBAL\Connection;
+use Everesh\ZeroX45\Model\LogStore;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\PhpRenderer;
@@ -31,6 +32,7 @@ class HomeController
         return $this->view->render($response, "home.php", [
             "sessionId" => session_id(),
             "posts" => $posts,
+            "logs" => (new LogStore($this->db))->recent(),
         ]);
     }
 }

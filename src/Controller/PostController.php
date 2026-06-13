@@ -7,6 +7,7 @@ namespace Everesh\ZeroX45\Controller;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 use Everesh\ZeroX45\Model\LogAction;
+use Everesh\ZeroX45\Model\LogStore;
 use Everesh\ZeroX45\Model\SessionStore;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -65,6 +66,19 @@ class PostController
 
         $anchor["username"] ??= $this->fallbackUsername($anchor["creator_key"]);
 
+        // log the first view of the thread, seen is board-wide (the log
+        // carries no viewer), so one event per anchor, ever
+        $seen = $this->db->fetchOne(
+            "SELECT 1 FROM log WHERE post_id = ? AND action = ?",
+            [(int) $anchor["id"], LogAction::PostSeen->value],
+        );
+        if ($seen === false) {
+            $this->db->insert("log", [
+                "action" => LogAction::PostSeen->value,
+                "post_id" => (int) $anchor["id"],
+            ]);
+        }
+
         // QueryBuilder has no CTE support, hence the raw SQL
         $descendants = $this->db
             ->executeQuery(
@@ -111,6 +125,7 @@ class PostController
             "session" => $request->getAttribute("session"),
             "anchor" => $anchor,
             "replies" => $replies,
+            "logs" => (new LogStore($this->db))->forThread((int) $anchor["id"]),
         ]);
     }
 
