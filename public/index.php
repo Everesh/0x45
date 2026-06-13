@@ -44,6 +44,10 @@ $app->get("/topics", [new TopicController($view, $db), "index"]);
 $app->get("/topic/{name}", [new TopicController($view, $db), "show"]);
 $app->post("/topic/new", [new TopicController($view, $db), "create"]);
 $app->post("/topic/{name}/delete", [new TopicController($view, $db), "delete"]);
+$app->post("/topic/{name}/thread", [
+    new TopicController($view, $db),
+    "createThread",
+]);
 $app->get("/post/{id}", [new PostController($view, $db), "show"]);
 $app->post("/post/{id}/endorse", [new PostController($view, $db), "endorse"]);
 $app->post("/post/{id}/reply", [new PostController($view, $db), "reply"]);

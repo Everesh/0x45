@@ -6,6 +6,7 @@ namespace Everesh\ZeroX45\Controller;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Everesh\ZeroX45\Model\LogAction;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Routing\RouteContext;
@@ -41,22 +42,10 @@ class TopicController
                 ->withStatus(404);
         }
 
-        $posts = $this->db
-            ->createQueryBuilder()
-            ->select("p.*", "COALESCE(SUM(e.vote), 0) AS rating")
-            ->from("thread", "t")
-            ->leftJoin("t", "post", "p", "t.anchor_id = p.id")
-            ->leftJoin("p", "endorse", "e", "e.id_post = p.id")
-            ->where("t.topic_id = :tid")
-            ->setParameter("tid", (int) $topic["id"])
-            ->groupBy("p.id")
-            ->setMaxResults(25)
-            ->fetchAllAssociative();
-
         $basePath = RouteContext::fromRequest($request)->getBasePath();
 
         return $this->view->render($response, "home.php", [
-            "posts" => $posts,
+            "posts" => $this->topicThreads((int) $topic["id"]),
             "topic" => $topic["name"],
             "topicDel" => $this->ownedBy(
                 $topic,
@@ -65,6 +54,79 @@ class TopicController
                 ? $basePath . "/topic/" . $topic["name"] . "/delete"
                 : null,
         ]);
+    }
+
+    /**
+     * anchors a new thread under the topic -- open to anyone, same as
+     * replies, the creator_key carries the session identity
+     *
+     * @param $args array<URL PARAM>
+     */
+    public function createThread(
+        Request $request,
+        Response $response,
+        array $args,
+    ): Response {
+        $topic = $this->db->fetchAssociative(
+            "SELECT * FROM topic WHERE name = ?",
+            [$args["name"]],
+        );
+
+        if (!$topic) {
+            return $this->view
+                ->render($response, "404.php")
+                ->withStatus(404);
+        }
+
+        $session = $request->getAttribute("session");
+        $body = (array) $request->getParsedBody();
+        $title = trim((string) ($body["title"] ?? ""));
+        $content = trim((string) ($body["content"] ?? ""));
+        $basePath = RouteContext::fromRequest($request)->getBasePath();
+
+        if ($title === "" || $content === "") {
+            return $this->view
+                ->render($response, "home.php", [
+                    "posts" => $this->topicThreads((int) $topic["id"]),
+                    "topic" => $topic["name"],
+                    "topicDel" => $this->ownedBy($topic, $session)
+                        ? $basePath . "/topic/" . $topic["name"] . "/delete"
+                        : null,
+                    "threadError" => "title and body are both required",
+                ])
+                ->withStatus(400);
+        }
+
+        // post + thread row in one go, the anchor_id FK demands the
+        // post exist first, lastInsertId carries it across the inserts
+        $anchorId = 0;
+        $this->db->transactional(function (Connection $conn) use (
+            $topic,
+            $title,
+            $content,
+            $session,
+            &$anchorId,
+        ) {
+            $conn->insert("post", [
+                "parent_id" => null,
+                "title" => $title,
+                "content" => $content,
+                "creator_key" => $session->key(),
+            ]);
+            $anchorId = (int) $conn->lastInsertId();
+            $conn->insert("thread", [
+                "topic_id" => (int) $topic["id"],
+                "anchor_id" => $anchorId,
+            ]);
+            $conn->insert("log", [
+                "action" => LogAction::PostCreated->value,
+                "post_id" => $anchorId,
+            ]);
+        });
+
+        return $response
+            ->withHeader("Location", $basePath . "/post/" . $anchorId)
+            ->withStatus(302);
     }
 
     public function delete(
@@ -155,6 +217,21 @@ class TopicController
         return $session->isSuper() ||
             ($topic["creator_id"] !== null &&
                 (int) $topic["creator_id"] === (int) $session->user()["id"]);
+    }
+
+    private function topicThreads(int $topicId): array
+    {
+        return $this->db
+            ->createQueryBuilder()
+            ->select("p.*", "COALESCE(SUM(e.vote), 0) AS rating")
+            ->from("thread", "t")
+            ->leftJoin("t", "post", "p", "t.anchor_id = p.id")
+            ->leftJoin("p", "endorse", "e", "e.id_post = p.id")
+            ->where("t.topic_id = :tid")
+            ->setParameter("tid", $topicId)
+            ->groupBy("p.id")
+            ->setMaxResults(25)
+            ->fetchAllAssociative();
     }
 
     private function allTopics(): array

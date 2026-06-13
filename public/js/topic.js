@@ -1,6 +1,6 @@
-// the new-topic box rides the leechBox collapse animation,
+// the new-topic / new-thread boxes ride the leechBox collapse animation,
 // cancel is handled by leech.js's generic data-cancel listener
-document.querySelectorAll("[data-topic-new]").forEach((item) => {
+document.querySelectorAll("[data-topic-new], [data-thread-new]").forEach((item) => {
   item.addEventListener("click", () => {
     const box = document.querySelector(".list > .leechBox");
     box.classList.toggle("open");

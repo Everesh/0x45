@@ -185,12 +185,14 @@ header *:not(h2) {
     align-self: flex-start;
 }
 
-/* hrefless pseudo-item that opens the new-topic box */
-.listItem[data-topic-new] {
+/* hrefless pseudo-items that open the new-topic / new-thread box */
+.listItem[data-topic-new],
+.listItem[data-thread-new] {
     cursor: pointer;
 }
 
-.listItem[data-topic-new]:hover {
+.listItem[data-topic-new]:hover,
+.listItem[data-thread-new]:hover {
     color: var(--highlight);
 }
 
