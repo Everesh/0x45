@@ -8,6 +8,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Everesh\ZeroX45\Model\LogAction;
 use Everesh\ZeroX45\Model\LogStore;
+use Everesh\ZeroX45\Model\ThreadStore;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Routing\RouteContext;
@@ -43,9 +44,18 @@ class TopicController
         }
 
         $basePath = RouteContext::fromRequest($request)->getBasePath();
+        $topicId = (int) $topic["id"];
+
+        $page = max(1, (int) ($request->getQueryParams()["page"] ?? 1));
+        $store = new ThreadStore($this->db);
+        $pages = max(
+            1,
+            (int) ceil($store->count($topicId) / ThreadStore::PER_PAGE),
+        );
+        $page = min($page, $pages);
 
         return $this->view->render($response, "home.php", [
-            "posts" => $this->topicThreads((int) $topic["id"]),
+            "posts" => $store->page($topicId, $page),
             "topic" => $topic["name"],
             "topicDel" => $this->ownedBy(
                 $topic,
@@ -53,7 +63,10 @@ class TopicController
             )
                 ? $basePath . "/topic/" . $topic["name"] . "/delete"
                 : null,
-            "logs" => (new LogStore($this->db))->forTopic((int) $topic["id"]),
+            "logs" => (new LogStore($this->db))->forTopic($topicId),
+            "page" => $page,
+            "pages" => $pages,
+            "pagePath" => "/topic/" . $topic["name"],
         ]);
     }
 
@@ -84,17 +97,25 @@ class TopicController
         $basePath = RouteContext::fromRequest($request)->getBasePath();
 
         if ($title === "" || $content === "") {
+            $topicId = (int) $topic["id"];
+            $store = new ThreadStore($this->db);
+            $pages = max(
+                1,
+                (int) ceil($store->count($topicId) / ThreadStore::PER_PAGE),
+            );
+
             return $this->view
                 ->render($response, "home.php", [
-                    "posts" => $this->topicThreads((int) $topic["id"]),
+                    "posts" => $store->page($topicId, 1),
                     "topic" => $topic["name"],
                     "topicDel" => $this->ownedBy($topic, $session)
                         ? $basePath . "/topic/" . $topic["name"] . "/delete"
                         : null,
                     "threadError" => "title and body are both required",
-                    "logs" => (new LogStore($this->db))->forTopic(
-                        (int) $topic["id"],
-                    ),
+                    "logs" => (new LogStore($this->db))->forTopic($topicId),
+                    "page" => 1,
+                    "pages" => $pages,
+                    "pagePath" => "/topic/" . $topic["name"],
                 ])
                 ->withStatus(400);
         }
@@ -219,21 +240,6 @@ class TopicController
         return $session->isSuper() ||
             ($topic["creator_id"] !== null &&
                 (int) $topic["creator_id"] === (int) $session->user()["id"]);
-    }
-
-    private function topicThreads(int $topicId): array
-    {
-        return $this->db
-            ->createQueryBuilder()
-            ->select("p.*", "COALESCE(SUM(e.vote), 0) AS rating")
-            ->from("thread", "t")
-            ->leftJoin("t", "post", "p", "t.anchor_id = p.id")
-            ->leftJoin("p", "endorse", "e", "e.id_post = p.id")
-            ->where("t.topic_id = :tid")
-            ->setParameter("tid", $topicId)
-            ->groupBy("p.id")
-            ->setMaxResults(25)
-            ->fetchAllAssociative();
     }
 
     private function allTopics(): array

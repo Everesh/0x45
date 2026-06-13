@@ -4,6 +4,9 @@
  * @var     $topic       ?string topic name, the new-thread box rides on it
  * @var     $topicDel    ?string delete url, set when the caller owns the topic
  * @var     $threadError ?string thread creation error to surface in the box
+ * @var     $page        int current page, 1-based
+ * @var     $pages       int total pages
+ * @var     $pagePath    string route path the pager appends ?page=N to
  * @var     $basePath    string defined in public index.php
  */
 
@@ -61,4 +64,9 @@ function asHex(int $n): string
           <p><?= htmlspecialchars(asHex((int) $post["rating"])) ?></p>
     </a>
   <?php endforeach; ?>
+  <?= $this->fetch("partials/pagination.php", [
+      "page" => $page,
+      "pages" => $pages,
+      "pagePath" => $pagePath,
+  ]) ?>
 </div>

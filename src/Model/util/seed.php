@@ -193,6 +193,63 @@ $hosting = $thread(
 // 10. no leeches
 $thread($tech, "Tabs or spaces", "Settling this once and for all.", $anon1);
 
+// --- bulk filler so the board spans several pages ---
+
+$voters = [$alice, $bob, $anon1, $anon2];
+$quips = [
+    "Strong opinions, loosely held.",
+    "This again? Love it.",
+    "Hard disagree, respectfully.",
+    "Finally someone said it.",
+    "Bookmarking this.",
+    "Counterpoint: no.",
+];
+
+$filler = [
+    [$general, "Coffee or tea?", "The eternal morning debate."],
+    [$general, "Introduce yourself", "New faces welcome, say hi."],
+    [$general, "Best keyboard shortcut", "The one you can't live without."],
+    [$general, "Lurkers, reveal yourselves", "We know you're out there."],
+    [$general, "Favorite color scheme", "Post your palette."],
+    [$general, "What's on your desk?", "Show the chaos."],
+    [$general, "Underrated CLI tools", "The ones nobody talks about."],
+    [$general, "How do you take notes?", "Plain text gang, assemble."],
+    [$general, "Music while coding?", "Lyrics or no lyrics?"],
+    [$general, "Mechanical or membrane?", "Settle it."],
+    [$general, "Your first program", "Be honest, was it Hello World?"],
+    [$general, "Dark mode everywhere", "Light mode users, explain yourselves."],
+    [$general, "Weekend project ideas", "Drop what you're tinkering with."],
+    [$tech, "Vim or Emacs", "The holy war continues."],
+    [$tech, "Static vs dynamic typing", "Where do you land?"],
+    [$tech, "SQLite is underrated", "One file, zero regrets."],
+    [$tech, "Regex: love or hate", "Now you have two problems."],
+    [$tech, "Container fatigue", "Is bare metal making a comeback?"],
+    [$tech, "Favorite HTTP status", "418 supremacy."],
+    [$tech, "Monorepo or polyrepo", "Pick your pain."],
+    [$tech, "Why I dropped frameworks", "Vanilla everything."],
+    [$tech, "The best git alias", "Save my keystrokes."],
+    [$tech, "Rewrite it in Rust?", "Or just leave it in C."],
+    [$tech, "Cron jobs that haunt you", "The 3am pager story."],
+    [$tech, "Comments: yes or no", "Self-documenting code is a myth."],
+];
+
+foreach ($filler as $i => [$topicId, $title, $content]) {
+    $author = $voters[$i % count($voters)];
+    $anchor = $thread($topicId, $title, $content, $author);
+
+    // a reply on every third thread, so leeches and the log have variety
+    if ($i % 3 === 0) {
+        $post($anchor, $quips[$i % count($quips)], $voters[($i + 1) % 4]);
+    }
+
+    // one vote each so ratings aren't a wall of 0x000
+    $conn->insert("endorse", [
+        "id_post" => $anchor,
+        "voter_key" => $voters[($i + 2) % 4],
+        "vote" => $i % 4 === 0 ? -1 : 1,
+    ]);
+}
+
 // seen marks
 foreach ([$hello, $dbal, $reading, $fonts] as $seen) {
     $conn->insert("log", [
