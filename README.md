@@ -1,7 +1,7 @@
 # 0x45
 → E : a micro forum 
 
-![preview img](https://github.com/user-attachments/assets/1186745c-fc21-4147-9b7a-15dff42042f9)
+![preview img](https://github.com/user-attachments/assets/88033f9e-f83c-4caf-aaa8-7824852ed817)
 
 ## Installation
 ### Prerequisites
