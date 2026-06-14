@@ -103,6 +103,35 @@ $thread = function (
     });
 };
 
+/** patches a post's content + logs it, mirrors PostController::edit */
+$edit = function (int $postId, string $content) use ($conn): void {
+    $conn->update("post", ["content" => $content], ["id" => $postId]);
+    $conn->insert("log", [
+        "action" => LogAction::PostPatched->value,
+        "post_id" => $postId,
+    ]);
+};
+
+/**
+ * soft-deletes a leech (blanks content, flips the flag) + logs it, the
+ * subtree survives -- same as PostController::delete for non-anchors
+ */
+$softDelete = function (int $postId) use ($conn): void {
+    $conn->update("post", ["content" => "", "deleted" => 1], ["id" => $postId]);
+    $conn->insert("log", [
+        "action" => LogAction::PostDeleted->value,
+        "post_id" => $postId,
+    ]);
+};
+
+/** logs a board-wide view of a post */
+$seen = function (int $postId) use ($conn): void {
+    $conn->insert("log", [
+        "action" => LogAction::PostSeen->value,
+        "post_id" => $postId,
+    ]);
+};
+
 // --- general ---
 
 // 1. deep thread — 7 leeches, one chain nested 4 deep
@@ -193,7 +222,10 @@ $hosting = $thread(
 // 10. no leeches
 $thread($tech, "Tabs or spaces", "Settling this once and for all.", $anon1);
 
-// --- bulk filler so the board spans several pages ---
+// --- bulk filler + interleaved mutations ---
+// the board spans several pages, and the log reads as a live mix instead of
+// blocks per action: creates, edits, deletes and views are woven together so
+// the id order (what the log sorts on) alternates POST/PUT/DELETE/GET
 
 $voters = [$alice, $bob, $anon1, $anon2];
 $quips = [
@@ -205,23 +237,117 @@ $quips = [
     "Counterpoint: no.",
 ];
 
+// adversarial anchors created up front so the loop can edit / delete / view
+// them. every payload here is stored verbatim and must render as literal text:
+// templates escape via htmlspecialchars, bound params keep the SQL inert, and
+// stored php is never include()d. proof, not exploits.
+$xss = $thread(
+    $tech,
+    "<script>alert('xss')</script>",
+    "classic: <script>alert(document.cookie)</script>",
+    $anon1,
+);
+$php = $thread(
+    $tech,
+    '<?php echo "title hijack"; ?>',
+    "stored php stays inert:" . "\n" . '<?php system($_GET[\'c\']); ?>',
+    $bob,
+);
+$sqli = $thread(
+    $general,
+    "'; DROP TABLE post;-- ",
+    "' OR 1=1 -- ' UNION SELECT username, passwd FROM user -- ",
+    $anon1,
+);
+$payloadHosts = [$xss, $php, $sqli];
+
+// a few attached now + named, so the mutation queue can target them
+$attr = $post($xss, 'attr breakout " autofocus onfocus=alert(1) x="', $anon1);
+$tmpl = $post($php, 'template probes: {{7*7}} ${7*7} #{7*7} <%= 7*7 %>', $alice);
+$emoji = $post($sqli, "unicode: 🐛💉 ＜script＞ ‮reversed‬ \t tabs", $alice);
+
+// the rest of the grab-bag (svg, event handlers, breakouts, filter bypass),
+// dripped as leeches through the loop so payloads scatter across the log
+$payloads = [
+    "<svg><script>alert(1)</script></svg>",
+    "<svg/onload=alert(document.domain)>",
+    "<svg><animate onbegin=alert(1) attributeName=x dur=1s></svg>",
+    "<svg><a xlink:href=\"javascript:alert(1)\"><text x=10 y=20>tap</text></a></svg>",
+    "<svg width=1 height=1><image href=x onerror=alert(1)></svg>",
+    "<svg><foreignObject><script>alert(1)</script></foreignObject></svg>",
+    "<svg><set attributeName=onload to=alert(1)></svg>",
+    "<img src=x onerror=alert(1)>",
+    "<body onload=alert(1)>",
+    "<details open ontoggle=alert(1)>",
+    "<marquee onstart=alert(1)>scrolling doom</marquee>",
+    "<input autofocus onfocus=alert(1)>",
+    "<video><source onerror=alert(1)></video>",
+    "<iframe src=\"javascript:alert(1)\"></iframe>",
+    "<math><mtext><script>alert(1)</script></mtext></math>",
+    "<audio src=x onerror=alert(1)>",
+    "\"><script>alert(String.fromCharCode(88,83,83))</script>",
+    "</title></style></textarea><script>alert(1)</script>",
+    "<scr<script>ipt>alert(1)</scr</script>ipt>",
+    "<a href=\"data:text/html,<script>alert(1)</script>\">data uri</a>",
+    "<a href=\"javascript:alert(document.cookie)\">click me</a>",
+    "javascript:/*--></title></style></textarea></script></xmp><svg/onload=alert(1)>",
+    "<style>*{background:url('javascript:alert(1)')}</style>",
+    "&lt;script&gt;already encoded&lt;/script&gt;",
+    "<img src=`x`onerror=alert(1)>",
+];
+
+// edits / deletes / views drained one-per-iteration; arrow fns capture the
+// target ids + helper closures by value
+$mutations = [
+    fn () => $seen($hello),
+    fn () => $edit($r1, "Welcome! Great to have you. (edited: fixed a typo)"),
+    fn () => $seen($r111),
+    fn () => $edit($cat, "My cat owns the keyboard. edit: now it's two cats."),
+    fn () => $softDelete($r11),
+    fn () => $seen($dbal),
+    fn () => $edit($dbal, "doctrine/dbal, still nice. EDIT: the QB grew on me."),
+    fn () => $edit($attr, "patched into svg: <svg/onload=alert('edited')>"),
+    fn () => $seen($attr),
+    fn () => $edit($qb, "Do you use the query builder? (revised)"),
+    fn () => $seen($qb),
+    fn () => $edit($qb, "Do you use the query builder? (revised again, sorry)"),
+    fn () => $softDelete($tmpl),
+    fn () => $seen($php),
+    fn () => $edit($jb, "JetBrains Mono. EDIT: <script>alert('font')</script>"),
+    fn () => $seen($reading),
+    fn () => $softDelete($emoji),
+    fn () => $seen($sqli),
+    fn () => $edit($plans, "Anything fun? EDIT: <img src=x onerror=alert(1)>"),
+    fn () => $seen($r3),
+    fn () => $edit($enums, "Backed enums killed my class constants. (edited)"),
+    fn () => $seen($enums),
+    fn () => $edit($lig, "Ligatures are a crime. EDIT: fine, != is ok."),
+    fn () => $seen($fonts),
+    fn () => $seen($xss),
+    fn () => $seen($plans),
+];
+
 $filler = [
     [$general, "Coffee or tea?", "The eternal morning debate."],
     [$general, "Introduce yourself", "New faces welcome, say hi."],
     [$general, "Best keyboard shortcut", "The one you can't live without."],
+    [$tech, "<svg onload=alert(1)>", "payload in the title bar"],
     [$general, "Lurkers, reveal yourselves", "We know you're out there."],
     [$general, "Favorite color scheme", "Post your palette."],
     [$general, "What's on your desk?", "Show the chaos."],
     [$general, "Underrated CLI tools", "The ones nobody talks about."],
+    [$tech, "<img src=x onerror=alert(1)>", "img onerror in the title"],
     [$general, "How do you take notes?", "Plain text gang, assemble."],
     [$general, "Music while coding?", "Lyrics or no lyrics?"],
     [$general, "Mechanical or membrane?", "Settle it."],
     [$general, "Your first program", "Be honest, was it Hello World?"],
+    [$tech, "</script><script>alert(1)</script>", "script breakout title"],
     [$general, "Dark mode everywhere", "Light mode users, explain yourselves."],
     [$general, "Weekend project ideas", "Drop what you're tinkering with."],
     [$tech, "Vim or Emacs", "The holy war continues."],
     [$tech, "Static vs dynamic typing", "Where do you land?"],
     [$tech, "SQLite is underrated", "One file, zero regrets."],
+    [$general, "1'><svg/onload=alert(1)>", "quote breakout title"],
     [$tech, "Regex: love or hate", "Now you have two problems."],
     [$tech, "Container fatigue", "Is bare metal making a comeback?"],
     [$tech, "Favorite HTTP status", "418 supremacy."],
@@ -237,9 +363,23 @@ foreach ($filler as $i => [$topicId, $title, $content]) {
     $author = $voters[$i % count($voters)];
     $anchor = $thread($topicId, $title, $content, $author);
 
-    // a reply on every third thread, so leeches and the log have variety
+    // a reply on every third thread
     if ($i % 3 === 0) {
         $post($anchor, $quips[$i % count($quips)], $voters[($i + 1) % 4]);
+    }
+
+    // drip a payload leech so fresh xss POSTs scatter through the log
+    if ($payloads) {
+        $post(
+            $payloadHosts[$i % count($payloadHosts)],
+            array_shift($payloads),
+            $voters[$i % 4],
+        );
+    }
+
+    // drain a mutation -> PUT/DELETE/GET weave through the POSTs
+    if ($mutations) {
+        (array_shift($mutations))();
     }
 
     // one vote each so ratings aren't a wall of 0x000
@@ -250,12 +390,12 @@ foreach ($filler as $i => [$topicId, $title, $content]) {
     ]);
 }
 
-// seen marks
-foreach ([$hello, $dbal, $reading, $fonts] as $seen) {
-    $conn->insert("log", [
-        "action" => LogAction::PostSeen->value,
-        "post_id" => $seen,
-    ]);
+// drain leftovers so nothing is lost if the queues outlast the loop
+while ($payloads) {
+    $post($payloadHosts[count($payloads) % 3], array_shift($payloads), $anon2);
+}
+while ($mutations) {
+    (array_shift($mutations))();
 }
 
 // endorsements
