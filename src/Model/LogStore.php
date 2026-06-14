@@ -8,7 +8,7 @@ use Doctrine\DBAL\Connection;
 
 class LogStore
 {
-    private const LIMIT = 58;
+    private const LIMIT = 60;
 
     public function __construct(private readonly Connection $db) {}
 
